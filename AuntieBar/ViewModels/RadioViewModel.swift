@@ -10,6 +10,7 @@ final class RadioViewModel {
     private(set) var currentStation: RadioStation?
     private(set) var errorMessage: String?
     private(set) var isLoading = false
+    private(set) var nowPlayingInfo: NowPlayingInfo?
     var volume: Double = 0.5 {
         didSet {
             player.volume = volume
@@ -24,12 +25,15 @@ final class RadioViewModel {
 
     // MARK: - Dependencies
     private let player: RadioPlayerProtocol
+    private let nowPlayingService: any NowPlayingServiceProtocol
     private var cancellables = Set<AnyCancellable>()
+    private var pollingTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
-    init(player: RadioPlayerProtocol = RadioPlayer.shared) {
+    init(player: RadioPlayerProtocol = RadioPlayer.shared, nowPlayingService: any NowPlayingServiceProtocol = NowPlayingService()) {
         self.player = player
+        self.nowPlayingService = nowPlayingService
         self.allStations = RadioStationsData.allStations
         self.stationsByCategory = RadioStationsData.stationsByCategory
         self.sortedCategories = RadioStationsData.sortedCategories
@@ -42,6 +46,10 @@ final class RadioViewModel {
         setupBindings()
     }
 
+    deinit {
+        pollingTask?.cancel()
+    }
+
     // MARK: - Public Methods
 
     func play(station: RadioStation) {
@@ -52,6 +60,10 @@ final class RadioViewModel {
             do {
                 try await player.play(station: station)
                 currentStation = station
+
+                // Fetch initial now-playing info and start polling
+                await fetchNowPlayingInfo(for: station)
+                startPolling(for: station)
             } catch {
                 errorMessage = error.localizedDescription
                 currentStation = nil
@@ -65,6 +77,8 @@ final class RadioViewModel {
         player.stop()
         currentStation = nil
         errorMessage = nil
+        stopPolling()
+        nowPlayingInfo = nil
     }
 
     func togglePlayback(for station: RadioStation) {
@@ -89,5 +103,36 @@ final class RadioViewModel {
                 self?.playbackState = state
             }
             .store(in: &cancellables)
+    }
+
+    // MARK: - Now Playing
+
+    private func fetchNowPlayingInfo(for station: RadioStation) async {
+        let info = await nowPlayingService.fetchNowPlaying(for: station.serviceId)
+        await MainActor.run {
+            nowPlayingInfo = info
+        }
+    }
+
+    private func startPolling(for station: RadioStation) {
+        // Cancel any existing polling task
+        pollingTask?.cancel()
+
+        pollingTask = Task {
+            while !Task.isCancelled {
+                // Wait 30 seconds
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+
+                guard !Task.isCancelled else { break }
+
+                // Fetch updated now-playing info
+                await fetchNowPlayingInfo(for: station)
+            }
+        }
+    }
+
+    private func stopPolling() {
+        pollingTask?.cancel()
+        pollingTask = nil
     }
 }

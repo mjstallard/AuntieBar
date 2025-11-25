@@ -7,13 +7,15 @@ struct RadioStation: Identifiable, Hashable, Codable {
     let streamURL: URL
     let category: RadioStationCategory
     let isUKOnly: Bool
+    let serviceId: String
 
-    init(id: String? = nil, name: String, streamURL: URL, category: RadioStationCategory, isUKOnly: Bool = false) {
+    init(id: String? = nil, name: String, streamURL: URL, category: RadioStationCategory, isUKOnly: Bool = false, serviceId: String) {
         self.id = id ?? UUID().uuidString
         self.name = name
         self.streamURL = streamURL
         self.category = category
         self.isUKOnly = isUKOnly
+        self.serviceId = serviceId
     }
 }
 

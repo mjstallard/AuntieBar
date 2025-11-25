@@ -72,4 +72,32 @@ final class RadioStationsDataTests: XCTestCase {
             )
         }
     }
+
+    func testAllStationsHaveServiceIds() {
+        // When
+        let stations = RadioStationsData.allStations
+
+        // Then
+        for station in stations {
+            XCTAssertFalse(station.serviceId.isEmpty, "Station \(station.name) should have a service ID")
+            XCTAssertTrue(
+                station.serviceId.starts(with: "bbc_"),
+                "Station \(station.name) service ID should start with 'bbc_', got: \(station.serviceId)"
+            )
+        }
+    }
+
+    func testServiceIdsAreUnique() {
+        // When
+        let stations = RadioStationsData.allStations
+        let serviceIds = stations.map { $0.serviceId }
+
+        // Then
+        let uniqueServiceIds = Set(serviceIds)
+        XCTAssertEqual(
+            serviceIds.count,
+            uniqueServiceIds.count,
+            "All service IDs should be unique"
+        )
+    }
 }

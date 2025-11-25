@@ -8,18 +8,21 @@ final class RadioStationTests: XCTestCase {
         let name = "Radio 6 Music"
         let url = URL(string: "http://example.com/stream.m3u8")!
         let category = RadioStationCategory.national
+        let serviceId = "bbc_6music"
 
         // When
         let station = RadioStation(
             name: name,
             streamURL: url,
-            category: category
+            category: category,
+            serviceId: serviceId
         )
 
         // Then
         XCTAssertEqual(station.name, name)
         XCTAssertEqual(station.streamURL, url)
         XCTAssertEqual(station.category, category)
+        XCTAssertEqual(station.serviceId, serviceId)
         XCTAssertFalse(station.isUKOnly)
     }
 
@@ -32,7 +35,8 @@ final class RadioStationTests: XCTestCase {
             name: "Radio 1 Anthems",
             streamURL: url,
             category: .national,
-            isUKOnly: true
+            isUKOnly: true,
+            serviceId: "bbc_radio_one_anthems"
         )
 
         // Then

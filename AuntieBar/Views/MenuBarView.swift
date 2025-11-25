@@ -7,6 +7,16 @@ struct MenuBarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Now Playing section
+            if let station = viewModel.currentStation {
+                NowPlayingView(
+                    station: station,
+                    nowPlayingInfo: viewModel.nowPlayingInfo
+                )
+
+                Divider()
+            }
+
             // Volume control
             HStack(spacing: 8) {
                 Image(systemName: "speaker.fill")

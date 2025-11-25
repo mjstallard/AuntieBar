@@ -4,6 +4,7 @@ import XCTest
 @MainActor
 final class RadioViewModelTests: XCTestCase {
     var mockPlayer: MockRadioPlayer!
+    var mockNowPlayingService: MockNowPlayingService!
     var viewModel: RadioViewModel!
 
     override func setUp() {
@@ -11,11 +12,13 @@ final class RadioViewModelTests: XCTestCase {
         // Clear any saved volume from previous tests
         UserDefaults.standard.removeObject(forKey: "savedVolume")
         mockPlayer = MockRadioPlayer()
-        viewModel = RadioViewModel(player: mockPlayer)
+        mockNowPlayingService = MockNowPlayingService()
+        viewModel = RadioViewModel(player: mockPlayer, nowPlayingService: mockNowPlayingService)
     }
 
     override func tearDown() {
         mockPlayer = nil
+        mockNowPlayingService = nil
         viewModel = nil
         // Clean up saved volume
         UserDefaults.standard.removeObject(forKey: "savedVolume")
@@ -36,7 +39,8 @@ final class RadioViewModelTests: XCTestCase {
         let station = RadioStation(
             name: "Test Station",
             streamURL: URL(string: "http://example.com/stream.m3u8")!,
-            category: .national
+            category: .national,
+            serviceId: "bbc_test"
         )
 
         // When
@@ -66,7 +70,8 @@ final class RadioViewModelTests: XCTestCase {
         let station = RadioStation(
             name: "Test Station",
             streamURL: URL(string: "http://example.com/stream.m3u8")!,
-            category: .national
+            category: .national,
+            serviceId: "bbc_test"
         )
 
         // When
@@ -82,7 +87,8 @@ final class RadioViewModelTests: XCTestCase {
         let station = RadioStation(
             name: "Test Station",
             streamURL: URL(string: "http://example.com/stream.m3u8")!,
-            category: .national
+            category: .national,
+            serviceId: "bbc_test"
         )
 
         // Start playback
@@ -101,12 +107,14 @@ final class RadioViewModelTests: XCTestCase {
         let station1 = RadioStation(
             name: "Station 1",
             streamURL: URL(string: "http://example.com/stream1.m3u8")!,
-            category: .national
+            category: .national,
+            serviceId: "bbc_test1"
         )
         let station2 = RadioStation(
             name: "Station 2",
             streamURL: URL(string: "http://example.com/stream2.m3u8")!,
-            category: .national
+            category: .national,
+            serviceId: "bbc_test2"
         )
 
         // When
@@ -123,7 +131,8 @@ final class RadioViewModelTests: XCTestCase {
         let station = RadioStation(
             name: "Test Station",
             streamURL: URL(string: "http://example.com/stream.m3u8")!,
-            category: .national
+            category: .national,
+            serviceId: "bbc_test"
         )
         mockPlayer.shouldFailPlayback = true
 
@@ -221,5 +230,224 @@ final class RadioViewModelTests: XCTestCase {
 
         // Final verification
         XCTAssertEqual(viewModel.volume, volumes.last!, accuracy: 0.01)
+    }
+
+    // MARK: - Now Playing Tests
+
+    func testInitialNowPlayingState() {
+        // Then
+        XCTAssertNil(viewModel.nowPlayingInfo)
+    }
+
+    func testPlayStationFetchesNowPlayingInfo() async {
+        // Given
+        let station = RadioStation(
+            name: "Test Station",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_6music"
+        )
+        let expectedInfo = NowPlayingInfo(
+            artist: "The Beatles",
+            title: "Hey Jude",
+            artworkURL: URL(string: "https://example.com/artwork.jpg")
+        )
+        mockNowPlayingService.mockNowPlayingInfo = expectedInfo
+
+        // When
+        viewModel.play(station: station)
+        try? await Task.sleep(nanoseconds: 300_000_000) // Wait for async operations
+
+        // Then
+        let fetchCount = mockNowPlayingService.fetchCallCount
+        let lastServiceId = mockNowPlayingService.lastServiceIdFetched
+        XCTAssertEqual(fetchCount, 1)
+        XCTAssertEqual(lastServiceId, "bbc_6music")
+        XCTAssertEqual(viewModel.nowPlayingInfo?.artist, "The Beatles")
+        XCTAssertEqual(viewModel.nowPlayingInfo?.title, "Hey Jude")
+    }
+
+    func testStopClearsNowPlayingInfo() async {
+        // Given
+        let station = RadioStation(
+            name: "Test Station",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_radio_one"
+        )
+        let expectedInfo = NowPlayingInfo(
+            artist: "Radiohead",
+            title: "Creep",
+            artworkURL: nil
+        )
+        mockNowPlayingService.mockNowPlayingInfo = expectedInfo
+
+        // Start playback
+        viewModel.play(station: station)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // Verify we have now playing info
+        XCTAssertNotNil(viewModel.nowPlayingInfo)
+
+        // When
+        viewModel.stop()
+
+        // Then
+        XCTAssertNil(viewModel.nowPlayingInfo)
+    }
+
+    func testNowPlayingInfoUpdatesWithPolling() async {
+        // Given
+        let station = RadioStation(
+            name: "Test Station",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_6music"
+        )
+        let initialInfo = NowPlayingInfo(
+            artist: "The Beatles",
+            title: "Hey Jude",
+            artworkURL: nil
+        )
+        mockNowPlayingService.mockNowPlayingInfo = initialInfo
+
+        // When - start playback
+        viewModel.play(station: station)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // Verify initial fetch
+        var fetchCount = mockNowPlayingService.fetchCallCount
+        XCTAssertEqual(fetchCount, 1)
+        XCTAssertEqual(viewModel.nowPlayingInfo?.artist, "The Beatles")
+
+        // Update mock to return different info for polling
+        let updatedInfo = NowPlayingInfo(
+            artist: "Pink Floyd",
+            title: "Comfortably Numb",
+            artworkURL: nil
+        )
+        mockNowPlayingService.mockNowPlayingInfo = updatedInfo
+
+        // Wait for polling interval (slightly more than 30 seconds)
+        try? await Task.sleep(nanoseconds: 31_000_000_000)
+
+        // Then - should have polled again
+        fetchCount = mockNowPlayingService.fetchCallCount
+        XCTAssertGreaterThan(fetchCount, 1)
+        XCTAssertEqual(viewModel.nowPlayingInfo?.artist, "Pink Floyd")
+    }
+
+    func testNowPlayingPollingStopsWhenStationStopped() async {
+        // Given
+        let station = RadioStation(
+            name: "Test Station",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_radio_two"
+        )
+        mockNowPlayingService.mockNowPlayingInfo = NowPlayingInfo(
+            artist: "Test Artist",
+            title: "Test Track",
+            artworkURL: nil
+        )
+
+        // Start playback
+        viewModel.play(station: station)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        let initialFetchCount = mockNowPlayingService.fetchCallCount
+
+        // When - stop playback
+        viewModel.stop()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        // Wait to ensure polling would have occurred if it was still running
+        try? await Task.sleep(nanoseconds: 31_000_000_000)
+
+        // Then - no additional fetches should have occurred
+        let finalFetchCount = mockNowPlayingService.fetchCallCount
+        XCTAssertEqual(finalFetchCount, initialFetchCount)
+    }
+
+    func testNowPlayingHandlesNilResponse() async {
+        // Given
+        let station = RadioStation(
+            name: "Test Station",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_radio_four"
+        )
+        mockNowPlayingService.shouldReturnNil = true
+
+        // When
+        viewModel.play(station: station)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // Then
+        XCTAssertNil(viewModel.nowPlayingInfo)
+        let fetchCount = mockNowPlayingService.fetchCallCount
+        XCTAssertEqual(fetchCount, 1) // Should still try to fetch
+    }
+
+    func testTogglePlaybackFetchesNowPlayingInfo() async {
+        // Given
+        let station = RadioStation(
+            name: "Test Station",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_radio_three"
+        )
+        let expectedInfo = NowPlayingInfo(
+            artist: "Mozart",
+            title: "Symphony No. 40",
+            artworkURL: nil
+        )
+        mockNowPlayingService.mockNowPlayingInfo = expectedInfo
+
+        // When
+        viewModel.togglePlayback(for: station)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // Then
+        let fetchCount = mockNowPlayingService.fetchCallCount
+        XCTAssertEqual(fetchCount, 1)
+        XCTAssertEqual(viewModel.nowPlayingInfo?.artist, "Mozart")
+    }
+
+    func testSwitchingStationsFetchesNewNowPlayingInfo() async {
+        // Given
+        let station1 = RadioStation(
+            name: "Station 1",
+            streamURL: URL(string: "http://example.com/stream1.m3u8")!,
+            category: .national,
+            serviceId: "bbc_6music"
+        )
+        let station2 = RadioStation(
+            name: "Station 2",
+            streamURL: URL(string: "http://example.com/stream2.m3u8")!,
+            category: .national,
+            serviceId: "bbc_radio_one"
+        )
+
+        let info1 = NowPlayingInfo(artist: "Artist 1", title: "Track 1", artworkURL: nil)
+        let info2 = NowPlayingInfo(artist: "Artist 2", title: "Track 2", artworkURL: nil)
+
+        // Play first station
+        mockNowPlayingService.mockNowPlayingInfo = info1
+        viewModel.play(station: station1)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+        XCTAssertEqual(viewModel.nowPlayingInfo?.artist, "Artist 1")
+
+        // When - switch to second station
+        mockNowPlayingService.mockNowPlayingInfo = info2
+        viewModel.play(station: station2)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // Then
+        let fetchCount = mockNowPlayingService.fetchCallCount
+        let lastServiceId = mockNowPlayingService.lastServiceIdFetched
+        XCTAssertEqual(fetchCount, 2) // Once for each station
+        XCTAssertEqual(lastServiceId, "bbc_radio_one")
+        XCTAssertEqual(viewModel.nowPlayingInfo?.artist, "Artist 2")
     }
 }

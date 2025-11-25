@@ -24,7 +24,8 @@ final class PlaybackStateTests: XCTestCase {
         let station = RadioStation(
             name: "Test",
             streamURL: URL(string: "http://example.com/stream.m3u8")!,
-            category: .national
+            category: .national,
+            serviceId: "bbc_test"
         )
         let state = PlaybackState.playing(station)
 
@@ -45,7 +46,8 @@ final class PlaybackStateTests: XCTestCase {
         let station = RadioStation(
             name: "Test",
             streamURL: URL(string: "http://example.com/stream.m3u8")!,
-            category: .national
+            category: .national,
+            serviceId: "bbc_test"
         )
 
         // Then
