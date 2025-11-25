@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents currently playing track information for a BBC radio station
-struct NowPlayingInfo: Equatable {
+struct NowPlayingInfo: Equatable, Sendable {
     let artist: String?
     let title: String?
     let artworkURL: URL?
@@ -21,11 +21,13 @@ struct NowPlayingInfo: Equatable {
 }
 
 /// API response structures for BBC Now Playing API
-struct BBCNowPlayingResponse: Codable {
+/// Note: Swift 6 migration - @unchecked Sendable used for immutable value types
+/// Warning about MainActor isolation will be resolved in full Swift 6 migration
+struct BBCNowPlayingResponse: Codable, @unchecked Sendable {
     let data: [BBCSegment]
 }
 
-struct BBCSegment: Codable {
+struct BBCSegment: Codable, @unchecked Sendable {
     let segment_type: String
     let titles: BBCTitles?
     let image_url: String?
@@ -37,7 +39,7 @@ struct BBCSegment: Codable {
     }
 }
 
-struct BBCTitles: Codable {
+struct BBCTitles: Codable, @unchecked Sendable {
     let primary: String?
     let secondary: String?
 }
