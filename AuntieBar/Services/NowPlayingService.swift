@@ -32,9 +32,9 @@ actor NowPlayingService: NowPlayingServiceProtocol {
 
             // Process artwork URL if available
             var artworkURL: URL? = nil
-            if let imageHref = musicSegment.images?.standard?.href {
+            if let imageURL = musicSegment.image_url {
                 // Replace {recipe} with 128x128
-                let processedURL = imageHref.replacingOccurrences(of: "{recipe}", with: "128x128")
+                let processedURL = imageURL.replacingOccurrences(of: "{recipe}", with: "128x128")
                 artworkURL = URL(string: processedURL)
             }
 

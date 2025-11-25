@@ -31,11 +31,7 @@ final class NowPlayingServiceTests: XCTestCase {
                         "primary": "The Beatles",
                         "secondary": "Hey Jude"
                     },
-                    "images": {
-                        "standard": {
-                            "href": "https://ichef.bbci.co.uk/images/ic/{recipe}/p0abc123.jpg"
-                        }
-                    }
+                    "image_url": "https://ichef.bbci.co.uk/images/ic/{recipe}/p0abc123.jpg"
                 }
             ]
         }

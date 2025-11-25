@@ -28,21 +28,13 @@ struct BBCNowPlayingResponse: Codable {
 struct BBCSegment: Codable {
     let segment_type: String
     let titles: BBCTitles?
-    let images: BBCImages?
+    let image_url: String?
 
     enum CodingKeys: String, CodingKey {
         case segment_type
         case titles
-        case images
+        case image_url
     }
-}
-
-struct BBCImages: Codable {
-    let standard: BBCImageRef?
-}
-
-struct BBCImageRef: Codable {
-    let href: String
 }
 
 struct BBCTitles: Codable {
