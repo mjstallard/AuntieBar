@@ -4,6 +4,8 @@ A modern macOS menu bar application for streaming all 64 BBC Radio stations.
 
 This is a vibe-coded train wreck of a codebase - no warranties given, no pride taken in construction.
 
+Stream info shamelessly stolen from [here](https://gist.github.com/bpsib/67089b959e4fa898af69fea59ad74bc3).
+
 ## Features
 
 - 🎵 **All BBC Radio Stations**: 64 stations including national, regional, and nations programming
