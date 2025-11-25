@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainView: View {
     @Bindable var viewModel: RadioViewModel
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 20) {
@@ -9,7 +10,7 @@ struct MainView: View {
             VStack(spacing: 8) {
                 Image(systemName: "dot.radiowaves.left.and.right")
                     .font(.system(size: 48))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(.tint)
 
                 Text("AuntieBar")
                     .font(.largeTitle)

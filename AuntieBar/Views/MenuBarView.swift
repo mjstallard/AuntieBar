@@ -3,13 +3,24 @@ import SwiftUI
 /// Menu bar extra content showing all BBC Radio stations
 struct MenuBarView: View {
     @Bindable var viewModel: RadioViewModel
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
             // Volume control
-            Slider(value: $viewModel.volume, in: 0...1)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+            HStack(spacing: 8) {
+                Image(systemName: "speaker.fill")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+
+                Slider(value: $viewModel.volume, in: 0...1)
+
+                Image(systemName: "speaker.wave.3.fill")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
 
             Divider()
 
@@ -88,6 +99,7 @@ struct CategorySection: View {
 struct StationButton: View {
     let station: RadioStation
     let viewModel: RadioViewModel
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Button {
@@ -105,7 +117,7 @@ struct StationButton: View {
                         .font(.caption2)
                         .padding(.horizontal, 4)
                         .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.2))
+                        .background(colorScheme == .dark ? Color.blue.opacity(0.3) : Color.blue.opacity(0.2))
                         .cornerRadius(3)
                 }
             }
