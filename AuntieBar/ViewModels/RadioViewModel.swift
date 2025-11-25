@@ -13,6 +13,7 @@ final class RadioViewModel {
     var volume: Double = 0.5 {
         didSet {
             player.volume = volume
+            UserDefaults.standard.set(volume, forKey: "savedVolume")
         }
     }
 
@@ -33,8 +34,10 @@ final class RadioViewModel {
         self.stationsByCategory = RadioStationsData.stationsByCategory
         self.sortedCategories = RadioStationsData.sortedCategories
 
-        // Initialize volume from player
-        self.volume = player.volume
+        // Load saved volume or default to 0.5
+        let savedVolume = UserDefaults.standard.object(forKey: "savedVolume") as? Double ?? 0.5
+        self.volume = savedVolume
+        player.volume = savedVolume
 
         setupBindings()
     }
