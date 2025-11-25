@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		27E8A40E2ED635DE00E0DC88 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 27E8A3D92ED5661A00E0DC88 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27E8A3E02ED5661A00E0DC88;
+			remoteInfo = AuntieBar;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		27E8A3E12ED5661A00E0DC88 /* AuntieBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AuntieBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		27E8A40A2ED635DE00E0DC88 /* AuntieBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AuntieBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = AuntieBar;
 			sourceTree = "<group>";
 		};
+		27E8A40B2ED635DE00E0DC88 /* AuntieBarTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AuntieBarTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		27E8A3DE2ED5661A00E0DC88 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		27E8A4072ED635DE00E0DC88 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				27E8A3E32ED5661A00E0DC88 /* AuntieBar */,
+				27E8A40B2ED635DE00E0DC88 /* AuntieBarTests */,
 				27E8A3E22ED5661A00E0DC88 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				27E8A3E12ED5661A00E0DC88 /* AuntieBar.app */,
+				27E8A40A2ED635DE00E0DC88 /* AuntieBarTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = 27E8A3E12ED5661A00E0DC88 /* AuntieBar.app */;
 			productType = "com.apple.product-type.application";
 		};
+		27E8A4092ED635DE00E0DC88 /* AuntieBarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 27E8A4102ED635DE00E0DC88 /* Build configuration list for PBXNativeTarget "AuntieBarTests" */;
+			buildPhases = (
+				27E8A4062ED635DE00E0DC88 /* Sources */,
+				27E8A4072ED635DE00E0DC88 /* Frameworks */,
+				27E8A4082ED635DE00E0DC88 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				27E8A40F2ED635DE00E0DC88 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				27E8A40B2ED635DE00E0DC88 /* AuntieBarTests */,
+			);
+			name = AuntieBarTests;
+			packageProductDependencies = (
+			);
+			productName = AuntieBarTests;
+			productReference = 27E8A40A2ED635DE00E0DC88 /* AuntieBarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					27E8A3E02ED5661A00E0DC88 = {
 						CreatedOnToolsVersion = 26.1.1;
+					};
+					27E8A4092ED635DE00E0DC88 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 27E8A3E02ED5661A00E0DC88;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				27E8A3E02ED5661A00E0DC88 /* AuntieBar */,
+				27E8A4092ED635DE00E0DC88 /* AuntieBarTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		27E8A3DF2ED5661A00E0DC88 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		27E8A4082ED635DE00E0DC88 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		27E8A4062ED635DE00E0DC88 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		27E8A40F2ED635DE00E0DC88 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27E8A3E02ED5661A00E0DC88 /* AuntieBar */;
+			targetProxy = 27E8A40E2ED635DE00E0DC88 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		27E8A3EA2ED5661B00E0DC88 /* Debug */ = {
@@ -252,7 +327,17 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -282,7 +367,17 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -303,6 +398,44 @@
 			};
 			name = Release;
 		};
+		27E8A4112ED635DE00E0DC88 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.stallard.AuntieBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AuntieBar.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AuntieBar";
+			};
+			name = Debug;
+		};
+		27E8A4122ED635DE00E0DC88 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.stallard.AuntieBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AuntieBar.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AuntieBar";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -320,6 +453,15 @@
 			buildConfigurations = (
 				27E8A3ED2ED5661B00E0DC88 /* Debug */,
 				27E8A3EE2ED5661B00E0DC88 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		27E8A4102ED635DE00E0DC88 /* Build configuration list for PBXNativeTarget "AuntieBarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				27E8A4112ED635DE00E0DC88 /* Debug */,
+				27E8A4122ED635DE00E0DC88 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
