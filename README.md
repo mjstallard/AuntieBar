@@ -2,6 +2,8 @@
 
 A modern macOS menu bar application for streaming all 64 BBC Radio stations.
 
+This is a vibe-coded train wreck of a codebase - no warranties given, no pride taken in construction.
+
 ## Features
 
 - 🎵 **All BBC Radio Stations**: 64 stations including national, regional, and nations programming
@@ -33,7 +35,7 @@ A modern macOS menu bar application for streaming all 64 BBC Radio stations.
 ## Usage
 
 1. Click the radio waves icon in your menu bar
-2. Browse stations by category or search for a specific station
+2. Browse stations by category 
 3. Click any station to start playing
 4. Click "Stop" to stop playback
 5. The currently playing station is indicated with a green icon
@@ -127,7 +129,7 @@ If the test target isn't already configured:
 
 ## License
 
-[Add your license here]
+MIT. See LICENSE.md
 
 ## Contributing
 
@@ -159,7 +161,6 @@ Potential future features:
 
 - [ ] Favorite stations
 - [ ] Now playing metadata display
-- [ ] Volume control
 - [ ] Sleep timer
 - [ ] Keyboard shortcuts
 - [ ] Stream quality selection
