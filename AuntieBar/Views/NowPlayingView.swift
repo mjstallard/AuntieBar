@@ -4,9 +4,11 @@ import SwiftUI
 struct NowPlayingView: View {
     let station: RadioStation
     let nowPlayingInfo: NowPlayingInfo?
+    let nowNextInfo: NowNextInfo?
     let audioQualityMetrics: AudioQualityMetrics?
     @State private var isHoveringStation = false
     @State private var isHoveringTrack = false
+    @State private var isHoveringProgramme = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -38,13 +40,27 @@ struct NowPlayingView: View {
                                 .font(.callout)
                                 .padding(8)
                         }
-                    }
+                }
 
                 if let programmeTitle = nowPlayingInfo?.programmeTitle {
                     Text(programmeTitle)
                         .font(.subheadline)
                         .foregroundStyle(.tertiary)
                         .lineLimit(1)
+                        .onHover { hovering in
+                            isHoveringProgramme = hovering
+                        }
+                        .popover(
+                            isPresented: Binding(
+                                get: { isHoveringProgramme && nowNextInfo != nil },
+                                set: { isHoveringProgramme = $0 }
+                            ),
+                            arrowEdge: .trailing
+                        ) {
+                            if let nowNextInfo {
+                                ProgrammeSchedulePopover(nowNextInfo: nowNextInfo)
+                            }
+                        }
                 }
 
                 if let trackInfo = nowPlayingInfo?.formattedTrackInfo {
@@ -77,6 +93,47 @@ struct NowPlayingView: View {
             .frame(width: 64, height: 64)
             .background(Color(nsColor: .controlBackgroundColor))
             .cornerRadius(4)
+    }
+}
+
+/// Popover showing current and next programme timing details
+private struct ProgrammeSchedulePopover: View {
+    let nowNextInfo: NowNextInfo
+
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        return formatter
+    }()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Started \(format(nowNextInfo.current.startTime)), ends \(format(nowNextInfo.current.endTime))")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            if let next = nowNextInfo.next {
+                Divider()
+                    .padding(.vertical, 4)
+
+                Text("Next at \(format(next.startTime)): \(next.title)")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            } else {
+                Text("Next programme information unavailable")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: 260, alignment: .leading)
+    }
+
+    private func format(_ date: Date) -> String {
+        ProgrammeSchedulePopover.timeFormatter.string(from: date)
     }
 }
 

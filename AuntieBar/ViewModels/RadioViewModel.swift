@@ -11,6 +11,7 @@ final class RadioViewModel {
     private(set) var errorMessage: String?
     private(set) var isLoading = false
     private(set) var nowPlayingInfo: NowPlayingInfo?
+    private(set) var nowNextInfo: NowNextInfo?
     private(set) var audioQualityMetrics: AudioQualityMetrics?
     var volume: Double = 0.5 {
         didSet {
@@ -86,6 +87,7 @@ final class RadioViewModel {
         errorMessage = nil
         stopPolling()
         nowPlayingInfo = nil
+        nowNextInfo = nil
     }
 
     func togglePlayback(for station: RadioStation) {
@@ -123,9 +125,13 @@ final class RadioViewModel {
     // MARK: - Now Playing
 
     private func fetchNowPlayingInfo(for station: RadioStation) async {
-        let info = await nowPlayingService.fetchNowPlaying(for: station.serviceId)
+        async let info = nowPlayingService.fetchNowPlaying(for: station.serviceId)
+        async let nowNext = nowPlayingService.fetchNowNext(for: station.serviceId)
+
+        let (nowPlaying, schedule) = await (info, nowNext)
         await MainActor.run {
-            nowPlayingInfo = info
+            nowPlayingInfo = nowPlaying
+            nowNextInfo = schedule
         }
     }
 

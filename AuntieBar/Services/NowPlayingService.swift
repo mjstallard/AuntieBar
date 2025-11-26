@@ -3,6 +3,11 @@ import Foundation
 /// Service for fetching now-playing information from BBC Radio API
 actor NowPlayingService: NowPlayingServiceProtocol {
     private let urlSession: URLSession
+    private static let iso8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
 
     init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
@@ -32,6 +37,35 @@ actor NowPlayingService: NowPlayingServiceProtocol {
             programmeTitle: programme?.programmeTitle,
             programmeSynopsis: programme?.programmeSynopsis
         )
+    }
+
+    func fetchNowNext(for serviceId: String) async -> NowNextInfo? {
+        do {
+            let broadcasts = try await fetchBroadcasts(for: serviceId, limit: 2)
+
+            guard
+                let current = broadcasts.first,
+                let currentTitle = current.titles?.primary,
+                let currentStart = current.start,
+                let currentEnd = current.end
+            else {
+                return nil
+            }
+
+            let currentSlot = ProgrammeSlot(title: currentTitle, startTime: currentStart, endTime: currentEnd)
+
+            var nextSlot: ProgrammeSlot?
+            if broadcasts.count > 1,
+               let nextTitle = broadcasts[1].titles?.primary,
+               let nextStart = broadcasts[1].start,
+               let nextEnd = broadcasts[1].end {
+                nextSlot = ProgrammeSlot(title: nextTitle, startTime: nextStart, endTime: nextEnd)
+            }
+
+            return NowNextInfo(current: currentSlot, next: nextSlot)
+        } catch {
+            return nil
+        }
     }
 
     /// Fetches track information from the segments API
@@ -74,27 +108,42 @@ actor NowPlayingService: NowPlayingServiceProtocol {
 
     /// Fetches programme (show) information from the broadcasts API
     private func fetchProgrammeInfo(for serviceId: String) async -> (programmeTitle: String?, programmeSynopsis: String?)? {
-        let urlString = "https://rms.api.bbc.co.uk/v2/broadcasts/poll/\(serviceId)?experience=domestic&offset=0&limit=1"
-
-        guard let url = URL(string: urlString) else {
-            return nil
-        }
-
         do {
-            let (data, _) = try await urlSession.data(from: url)
-            let response = try JSONDecoder().decode(BBCBroadcastResponse.self, from: data)
+            let broadcasts = try await fetchBroadcasts(for: serviceId, limit: 1)
 
-            guard let broadcast = response.data.first else {
-                return nil
-            }
-
-            let programmeTitle = broadcast.titles?.primary
-            let programmeSynopsis = broadcast.synopses?.short
-
-            return (programmeTitle, programmeSynopsis)
+            guard let broadcast = broadcasts.first else { return nil }
+            return (broadcast.titles?.primary, broadcast.synopses?.short)
         } catch {
             // Fail quietly - programme info is optional
             return nil
         }
+    }
+
+    private func fetchBroadcasts(for serviceId: String, limit: Int) async throws -> [BBCBroadcast] {
+        let urlString = "https://rms.api.bbc.co.uk/v2/broadcasts/poll/\(serviceId)?experience=domestic&offset=0&limit=\(limit)"
+
+        guard let url = URL(string: urlString) else {
+            throw URLError(.badURL)
+        }
+
+        let (data, _) = try await urlSession.data(from: url)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+
+            if let date = NowPlayingService.iso8601Formatter.date(from: dateString) {
+                return date
+            }
+
+            if let fallbackDate = ISO8601DateFormatter().date(from: dateString) {
+                return fallbackDate
+            }
+
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid ISO8601 date: \(dateString)")
+        }
+
+        let response = try decoder.decode(BBCBroadcastResponse.self, from: data)
+        return response.data
     }
 }

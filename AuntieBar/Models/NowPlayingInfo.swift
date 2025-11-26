@@ -77,10 +77,14 @@ struct BBCBroadcastResponse: Codable, @unchecked Sendable {
 }
 
 struct BBCBroadcast: Codable, @unchecked Sendable {
+    let start: Date?
+    let end: Date?
     let titles: BBCBroadcastTitles?
     let synopses: BBCBroadcastSynopses?
 
     enum CodingKeys: String, CodingKey {
+        case start
+        case end
         case titles
         case synopses
     }

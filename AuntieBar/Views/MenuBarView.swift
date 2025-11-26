@@ -12,6 +12,7 @@ struct MenuBarView: View {
                 NowPlayingView(
                     station: station,
                     nowPlayingInfo: viewModel.nowPlayingInfo,
+                    nowNextInfo: viewModel.nowNextInfo,
                     audioQualityMetrics: viewModel.audioQualityMetrics
                 )
 

@@ -257,6 +257,17 @@ final class RadioViewModelTests: XCTestCase {
             programmeSynopsis: nil
         )
         mockNowPlayingService.mockNowPlayingInfo = expectedInfo
+        let nowSlot = ProgrammeSlot(
+            title: "Morning Show",
+            startTime: Date(timeIntervalSince1970: 0),
+            endTime: Date(timeIntervalSince1970: 1_800)
+        )
+        let nextSlot = ProgrammeSlot(
+            title: "Breakfast",
+            startTime: Date(timeIntervalSince1970: 1_800),
+            endTime: Date(timeIntervalSince1970: 3_600)
+        )
+        mockNowPlayingService.mockNowNextInfo = NowNextInfo(current: nowSlot, next: nextSlot)
 
         // Start playback
         viewModel.play(station: station)
@@ -264,12 +275,14 @@ final class RadioViewModelTests: XCTestCase {
 
         // Verify we have now playing info
         XCTAssertNotNil(viewModel.nowPlayingInfo)
+        XCTAssertNotNil(viewModel.nowNextInfo)
 
         // When
         viewModel.stop()
 
         // Then
         XCTAssertNil(viewModel.nowPlayingInfo)
+        XCTAssertNil(viewModel.nowNextInfo)
     }
 
     func testNowPlayingPollingStopsWhenStationStopped() async {

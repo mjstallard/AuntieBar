@@ -4,6 +4,11 @@ import XCTest
 final class NowPlayingServiceTests: XCTestCase {
     var service: NowPlayingService!
     var mockURLSession: URLSession!
+    private var isoFormatter: ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }
 
     override func setUp() {
         super.setUp()
@@ -236,6 +241,79 @@ final class NowPlayingServiceTests: XCTestCase {
         XCTAssertEqual(result?.title, "Hey Jude")
         XCTAssertNil(result?.programmeTitle)
         XCTAssertNil(result?.programmeSynopsis)
+    }
+
+    func testFetchNowNextParsesCurrentAndNextProgrammes() async {
+        // Given
+        let jsonResponse = """
+        {
+            "data": [
+                {
+                    "start": "2024-05-01T19:00:00Z",
+                    "end": "2024-05-01T19:30:00Z",
+                    "titles": { "primary": "Evening Show" },
+                    "synopses": { "short": "Current show" }
+                },
+                {
+                    "start": "2024-05-01T19:30:00Z",
+                    "end": "2024-05-01T20:00:00Z",
+                    "titles": { "primary": "Night Programme" }
+                }
+            ]
+        }
+        """
+        MockURLProtocol.mockData = jsonResponse.data(using: .utf8)!
+
+        // When
+        let result = await service.fetchNowNext(for: "bbc_radio_four")
+
+        // Then
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.current.title, "Evening Show")
+        XCTAssertEqual(result?.next?.title, "Night Programme")
+        XCTAssertEqual(result?.current.startTime, isoFormatter.date(from: "2024-05-01T19:00:00Z"))
+        XCTAssertEqual(result?.current.endTime, isoFormatter.date(from: "2024-05-01T19:30:00Z"))
+        XCTAssertEqual(result?.next?.startTime, isoFormatter.date(from: "2024-05-01T19:30:00Z"))
+    }
+
+    func testFetchNowNextUsesCorrectURL() async {
+        // Given
+        MockURLProtocol.mockData = """
+        {
+            "data": []
+        }
+        """.data(using: .utf8)!
+
+        // When
+        _ = await service.fetchNowNext(for: "bbc_6music")
+
+        // Then
+        let expectedURLString = "https://rms.api.bbc.co.uk/v2/broadcasts/poll/bbc_6music?experience=domestic&offset=0&limit=2"
+        XCTAssertEqual(MockURLProtocol.lastRequestedURL?.absoluteString, expectedURLString)
+    }
+
+    func testFetchNowNextHandlesFractionalSeconds() async {
+        // Given
+        let jsonResponse = """
+        {
+            "data": [
+                {
+                    "start": "2024-06-01T07:00:00.123Z",
+                    "end": "2024-06-01T09:00:00.456Z",
+                    "titles": { "primary": "Breakfast" }
+                }
+            ]
+        }
+        """
+        MockURLProtocol.mockData = jsonResponse.data(using: .utf8)!
+
+        // When
+        let result = await service.fetchNowNext(for: "bbc_radio_two")
+
+        // Then
+        XCTAssertEqual(result?.current.title, "Breakfast")
+        XCTAssertEqual(result?.current.startTime, isoFormatter.date(from: "2024-06-01T07:00:00.123Z"))
+        XCTAssertEqual(result?.current.endTime, isoFormatter.date(from: "2024-06-01T09:00:00.456Z"))
     }
 }
 
