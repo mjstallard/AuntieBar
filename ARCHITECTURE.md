@@ -22,10 +22,6 @@ AuntieBar is a macOS menu bar application for streaming BBC Radio stations. It f
   - Playback controls and status display
   - Built with SwiftUI and `@Bindable` property wrapper
 
-- **MainView.swift**: Optional window view for app information
-  - Shows current playback status
-  - Displays station information
-
 ### ViewModels (`ViewModels/`)
 - **RadioViewModel.swift**: Business logic layer using `@Observable` macro
   - Manages playback state
@@ -122,12 +118,10 @@ AuntieBar/
 ├── ViewModels/
 │   └── RadioViewModel.swift     # Business logic
 ├── Views/
-│   ├── MenuBarView.swift        # Menu bar UI
-│   └── MainView.swift           # Window UI
+│   └── MenuBarView.swift        # Menu bar UI
 ├── Protocols/
 │   └── RadioPlayerProtocol.swift # Service contracts
-├── RadioPlayer.swift            # Playback service
-└── AuntieWindowController.swift # Window management
+└── RadioPlayer.swift            # Playback service
 
 AuntieBarTests/
 ├── RadioStationTests.swift

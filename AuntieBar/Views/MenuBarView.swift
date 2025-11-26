@@ -3,7 +3,6 @@ import SwiftUI
 /// Menu bar extra content showing all BBC Radio stations
 struct MenuBarView: View {
     @Bindable var viewModel: RadioViewModel
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
