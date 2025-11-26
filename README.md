@@ -6,6 +6,12 @@ This is a vibe-coded train wreck of a codebase - no warranties given, no pride t
 
 Stream info shamelessly stolen from [here](https://gist.github.com/bpsib/67089b959e4fa898af69fea59ad74bc3).
 
+## Legal / Disclaimer
+
+- Unofficial app; not affiliated with or endorsed by the BBC.
+- Streams and metadata remain the property of their respective owners.
+- Provided for personal use only; review BBC terms for any additional restrictions.
+
 ## Features
 
 - 🎵 **All BBC Radio Stations**: 64 stations including national, regional, and nations programming
