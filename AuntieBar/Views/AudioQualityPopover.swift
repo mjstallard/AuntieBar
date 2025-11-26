@@ -14,21 +14,9 @@ struct AudioQualityPopover: View {
                 qualityRow(label: "Codec:", value: codec)
             }
 
-            // Show indicated bitrate if available, otherwise observed
+            // Show nominal bitrate only
             if let bitrate = metrics.indicatedBitrateKbps {
                 qualityRow(label: "Bitrate:", value: "\(bitrate) kbps")
-
-                // Show observed if different from indicated
-                if let observedBitrate = metrics.observedBitrateKbps,
-                   observedBitrate != bitrate {
-                    qualityRow(label: "Observed:", value: "\(observedBitrate) kbps")
-                }
-            } else if let observedBitrate = metrics.observedBitrateKbps {
-                qualityRow(label: "Bitrate:", value: "\(observedBitrate) kbps")
-            }
-
-            if let sampleRate = metrics.sampleRateKHz {
-                qualityRow(label: "Sample Rate:", value: String(format: "%.1f kHz", sampleRate))
             }
 
             if let channels = metrics.channelDescription {

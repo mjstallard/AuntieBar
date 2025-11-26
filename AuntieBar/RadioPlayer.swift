@@ -29,6 +29,8 @@ final class RadioPlayer: RadioPlayerProtocol {
     private var metricsTimer: Timer?
     private let stateSubject = PassthroughSubject<PlaybackState, Never>()
     private let metricsSubject = PassthroughSubject<AudioQualityMetrics?, Never>()
+    private var nominalBitrate: Double?
+    private var nominalBitrateCache: [URL: Double] = [:]
 
     var statePublisher: AnyPublisher<PlaybackState, Never> {
         stateSubject.eraseToAnyPublisher()
@@ -54,6 +56,7 @@ final class RadioPlayer: RadioPlayerProtocol {
         playerObserver?.invalidate()
         metricsTimer?.invalidate()
         audioQualityMetrics = nil
+        nominalBitrate = nil
 
         let playerItem = AVPlayerItem(url: station.streamURL)
         let newPlayer = AVPlayer(playerItem: playerItem)
@@ -63,6 +66,8 @@ final class RadioPlayer: RadioPlayerProtocol {
         newPlayer.volume = currentVolume
 
         player = newPlayer
+
+        Task { await self.populateNominalBitrate(for: station.streamURL) }
 
         // Observe player status for error handling
         observePlayerStatus(for: playerItem, station: station)
@@ -80,6 +85,7 @@ final class RadioPlayer: RadioPlayerProtocol {
         metricsTimer?.invalidate()
         currentStation = nil
         audioQualityMetrics = nil
+        nominalBitrate = nil
         playbackState = .idle
     }
 
@@ -137,7 +143,8 @@ final class RadioPlayer: RadioPlayerProtocol {
 
         if let accessLog = playerItem.accessLog(),
            let lastEvent = accessLog.events.last {
-            indicatedBitrate = lastEvent.indicatedBitrate > 0 ? lastEvent.indicatedBitrate : nil
+            // Prefer manifest-indicated bitrate; fall back to access log if missing
+            indicatedBitrate = nominalBitrate ?? (lastEvent.indicatedBitrate > 0 ? lastEvent.indicatedBitrate : nil)
             observedBitrate = lastEvent.observedBitrate > 0 ? lastEvent.observedBitrate : nil
             stallCount = lastEvent.numberOfStalls
             bytesTransferred = lastEvent.numberOfBytesTransferred
@@ -163,65 +170,39 @@ final class RadioPlayer: RadioPlayerProtocol {
         }
     }
 
-    private func extractAudioFormat(from asset: AVAsset) async -> (sampleRate: Double?, channelCount: Int?, codec: String?) {
-        // For HLS streams (like BBC Radio), we need to parse the manifest or use URL info
-        // Standard AVAsset track loading doesn't work for HLS
+    private func populateNominalBitrate(for url: URL) async {
+        if let cached = nominalBitrateCache[url] {
+            await MainActor.run { self.nominalBitrate = cached }
+            return
+        }
 
+        let manifestBitrate = await HLSManifestParser.fetchNominalBitrate(from: url)
+        let fallbackBitrate = HLSManifestParser.parseBitrateFromURL(url)
+
+        let resolvedBitrate = manifestBitrate ?? fallbackBitrate
+
+        if let resolvedBitrate {
+            nominalBitrateCache[url] = resolvedBitrate
+            await MainActor.run {
+                self.nominalBitrate = resolvedBitrate
+                self.updateAudioQualityMetrics()
+            }
+        }
+    }
+
+    private func extractAudioFormat(from asset: AVAsset) async -> (sampleRate: Double?, channelCount: Int?, codec: String?) {
+        // Keep this light: we only expose codec/channels; sample rate is omitted to avoid misleading values.
         guard let urlAsset = asset as? AVURLAsset else {
             return (nil, nil, nil)
         }
 
-        let streamURL = urlAsset.url
-        let urlString = streamURL.absoluteString
+        let urlString = urlAsset.url.absoluteString
 
-        var sampleRate: Double?
-        var channelCount: Int?
-        var codec: String?
-
-        // Detect BBC streams and use known format specs
+        // BBC fallback: AAC stereo; leave sample rate unknown (nil)
         if urlString.contains("bbc_radio") || urlString.contains("bbc.co.uk") {
-            // BBC streams are AAC, 48kHz, stereo
-            codec = "AAC"
-            channelCount = 2
-            sampleRate = 48000
-        } else {
-            // Try to fetch and parse the m3u8 manifest for non-BBC streams
-            if let data = try? await URLSession.shared.data(from: streamURL).0,
-               let manifestString = String(data: data, encoding: .utf8),
-               let codecMatch = manifestString.range(of: #"CODECS="([^"]+)""#, options: .regularExpression) {
-
-                let codecStr = String(manifestString[codecMatch])
-                if codecStr.contains("mp4a") {
-                    codec = "AAC"
-                    channelCount = 2
-                    sampleRate = 48000
-                }
-            }
+            return (nil, 2, "AAC")
         }
 
-        return (sampleRate, channelCount, codec)
-    }
-
-    private func codecNameFromFourCC(_ fourCC: FourCharCode) -> String {
-        // Convert FourCharCode to string
-        let chars = [
-            UInt8((fourCC >> 24) & 0xFF),
-            UInt8((fourCC >> 16) & 0xFF),
-            UInt8((fourCC >> 8) & 0xFF),
-            UInt8(fourCC & 0xFF)
-        ]
-
-        // Try to create ASCII string
-        if let name = String(bytes: chars, encoding: .ascii) {
-            return name.trimmingCharacters(in: .whitespaces)
-        }
-
-        // Fallback to known codec types
-        switch fourCC {
-        case kAudioFormatMPEG4AAC: return "AAC"
-        case kAudioFormatMPEGLayer3: return "MP3"
-        case kAudioFormatAppleLossless: return "ALAC"
-        default: return "Unknown"
-        }
+        return (nil, nil, nil)
     }
 }
