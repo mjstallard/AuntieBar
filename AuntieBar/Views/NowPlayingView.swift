@@ -45,7 +45,7 @@ struct NowPlayingView: View {
                     Text(programmeTitle)
                         .font(.subheadline)
                         .foregroundStyle(.tertiary)
-                        .lineLimit(1)
+                        .lineLimit(nil)
                         .onHover { hovering in
                             isHoveringProgramme = hovering
                         }
