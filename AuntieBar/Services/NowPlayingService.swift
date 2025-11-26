@@ -41,7 +41,8 @@ actor NowPlayingService: NowPlayingServiceProtocol {
 
     func fetchNowNext(for serviceId: String) async -> NowNextInfo? {
         do {
-            let broadcasts = try await fetchBroadcasts(for: serviceId, limit: 2)
+            // Current broadcast + up to the next three programmes
+            let broadcasts = try await fetchBroadcasts(for: serviceId, limit: 4)
 
             guard
                 let current = broadcasts.first,
@@ -54,15 +55,22 @@ actor NowPlayingService: NowPlayingServiceProtocol {
 
             let currentSlot = ProgrammeSlot(title: currentTitle, startTime: currentStart, endTime: currentEnd)
 
-            var nextSlot: ProgrammeSlot?
-            if broadcasts.count > 1,
-               let nextTitle = broadcasts[1].titles?.primary,
-               let nextStart = broadcasts[1].start,
-               let nextEnd = broadcasts[1].end {
-                nextSlot = ProgrammeSlot(title: nextTitle, startTime: nextStart, endTime: nextEnd)
-            }
+            let upcomingSlots = broadcasts
+                .dropFirst()
+                .compactMap { broadcast -> ProgrammeSlot? in
+                    guard
+                        let title = broadcast.titles?.primary,
+                        let start = broadcast.start,
+                        let end = broadcast.end
+                    else {
+                        return nil
+                    }
 
-            return NowNextInfo(current: currentSlot, next: nextSlot)
+                    return ProgrammeSlot(title: title, startTime: start, endTime: end)
+                }
+                .prefix(3)
+
+            return NowNextInfo(current: currentSlot, upcoming: Array(upcomingSlots))
         } catch {
             return nil
         }

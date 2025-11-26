@@ -267,7 +267,7 @@ final class RadioViewModelTests: XCTestCase {
             startTime: Date(timeIntervalSince1970: 1_800),
             endTime: Date(timeIntervalSince1970: 3_600)
         )
-        mockNowPlayingService.mockNowNextInfo = NowNextInfo(current: nowSlot, next: nextSlot)
+        mockNowPlayingService.mockNowNextInfo = NowNextInfo(current: nowSlot, upcoming: [nextSlot])
 
         // Start playback
         viewModel.play(station: station)

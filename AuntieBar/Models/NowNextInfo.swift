@@ -7,8 +7,11 @@ struct ProgrammeSlot: Equatable, Sendable {
     let endTime: Date
 }
 
-/// Bundles the current and next programmes for a station
+/// Bundles the current and upcoming programmes for a station
 struct NowNextInfo: Equatable, Sendable {
     let current: ProgrammeSlot
-    let next: ProgrammeSlot?
+    let upcoming: [ProgrammeSlot]
+
+    /// Convenience accessor for the immediately following programme
+    var next: ProgrammeSlot? { upcoming.first }
 }

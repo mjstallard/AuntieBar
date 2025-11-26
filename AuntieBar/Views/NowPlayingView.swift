@@ -96,7 +96,7 @@ struct NowPlayingView: View {
     }
 }
 
-/// Popover showing current and next programme timing details
+/// Popover showing current and upcoming programme timing details
 private struct ProgrammeSchedulePopover: View {
     let nowNextInfo: NowNextInfo
 
@@ -113,14 +113,16 @@ private struct ProgrammeSchedulePopover: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
-            if let next = nowNextInfo.next {
+            if !upcomingSlots.isEmpty {
                 Divider()
                     .padding(.vertical, 4)
 
-                Text("Next at \(format(next.startTime)): \(next.title)")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                ForEach(upcomingSlots, id: \.startTime) { slot in
+                    Text("Next at \(format(slot.startTime)): \(slot.title)")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
             } else {
                 Text("Next programme information unavailable")
                     .font(.callout)
@@ -134,6 +136,10 @@ private struct ProgrammeSchedulePopover: View {
 
     private func format(_ date: Date) -> String {
         ProgrammeSchedulePopover.timeFormatter.string(from: date)
+    }
+
+    private var upcomingSlots: [ProgrammeSlot] {
+        Array(nowNextInfo.upcoming.prefix(3))
     }
 }
 
