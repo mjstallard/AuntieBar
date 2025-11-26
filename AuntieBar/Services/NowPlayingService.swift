@@ -32,16 +32,20 @@ actor NowPlayingService: NowPlayingServiceProtocol {
 
             // Process artwork URL if available
             var artworkURL: URL? = nil
+            var artworkTemplate: String? = nil
             if let imageURL = musicSegment.image_url {
-                // Replace {recipe} with 128x128
-                let processedURL = imageURL.replacingOccurrences(of: "{recipe}", with: "128x128")
+                artworkTemplate = imageURL
+                // Try different image sizes - BBC image service supports various recipes
+                // Use 256x256 for better quality on retina displays
+                let processedURL = imageURL.replacingOccurrences(of: "{recipe}", with: "256x256")
                 artworkURL = URL(string: processedURL)
             }
 
             return NowPlayingInfo(
                 artist: artist,
                 title: title,
-                artworkURL: artworkURL
+                artworkURL: artworkURL,
+                artworkURLTemplate: artworkTemplate
             )
         } catch {
             // Fail quietly as per requirements

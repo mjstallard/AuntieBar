@@ -9,21 +9,12 @@ struct NowPlayingView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Artwork or placeholder
-            if let artworkURL = nowPlayingInfo?.artworkURL {
-                AsyncImage(url: artworkURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    case .failure, .empty:
-                        placeholderImage
-                    @unknown default:
-                        placeholderImage
-                    }
-                }
+            if let artworkURLs = nowPlayingInfo?.artworkCandidates, !artworkURLs.isEmpty {
+                ArtworkLoader(
+                    urls: artworkURLs,
+                    placeholder: placeholderImage
+                )
                 .frame(width: 64, height: 64)
-                .cornerRadius(4)
             } else if nowPlayingInfo?.hasMetadata == true {
                 placeholderImage
                     .frame(width: 64, height: 64)
@@ -65,5 +56,48 @@ struct NowPlayingView: View {
             .frame(width: 64, height: 64)
             .background(Color(nsColor: .controlBackgroundColor))
             .cornerRadius(4)
+    }
+}
+
+/// Async image view that falls back through multiple URLs before showing a placeholder
+private struct ArtworkLoader<Placeholder: View>: View {
+    let urls: [URL]
+    let placeholder: Placeholder
+
+    @State private var currentIndex = 0
+
+    var body: some View {
+        ZStack {
+            placeholder
+
+            if !urls.isEmpty {
+                AsyncImage(url: urls[currentIndex]) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .clipped()
+                    case .failure:
+                        Color.clear
+                            .task {
+                                advanceIfPossible()
+                            }
+                    case .empty:
+                        Color.clear
+                    @unknown default:
+                        Color.clear
+                    }
+                }
+            }
+        }
+        .frame(width: 64, height: 64)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .cornerRadius(4)
+    }
+
+    private func advanceIfPossible() {
+        guard currentIndex + 1 < urls.count else { return }
+        currentIndex += 1
     }
 }

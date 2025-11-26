@@ -250,7 +250,8 @@ final class RadioViewModelTests: XCTestCase {
         let expectedInfo = NowPlayingInfo(
             artist: "The Beatles",
             title: "Hey Jude",
-            artworkURL: URL(string: "https://example.com/artwork.jpg")
+            artworkURL: URL(string: "https://example.com/artwork.jpg"),
+            artworkURLTemplate: nil
         )
         mockNowPlayingService.mockNowPlayingInfo = expectedInfo
 
@@ -278,7 +279,8 @@ final class RadioViewModelTests: XCTestCase {
         let expectedInfo = NowPlayingInfo(
             artist: "Radiohead",
             title: "Creep",
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
         mockNowPlayingService.mockNowPlayingInfo = expectedInfo
 
@@ -307,7 +309,8 @@ final class RadioViewModelTests: XCTestCase {
         let initialInfo = NowPlayingInfo(
             artist: "The Beatles",
             title: "Hey Jude",
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
         mockNowPlayingService.mockNowPlayingInfo = initialInfo
 
@@ -324,7 +327,8 @@ final class RadioViewModelTests: XCTestCase {
         let updatedInfo = NowPlayingInfo(
             artist: "Pink Floyd",
             title: "Comfortably Numb",
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
         mockNowPlayingService.mockNowPlayingInfo = updatedInfo
 
@@ -348,7 +352,8 @@ final class RadioViewModelTests: XCTestCase {
         mockNowPlayingService.mockNowPlayingInfo = NowPlayingInfo(
             artist: "Test Artist",
             title: "Test Track",
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
 
         // Start playback
@@ -400,7 +405,8 @@ final class RadioViewModelTests: XCTestCase {
         let expectedInfo = NowPlayingInfo(
             artist: "Mozart",
             title: "Symphony No. 40",
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
         mockNowPlayingService.mockNowPlayingInfo = expectedInfo
 
@@ -429,8 +435,8 @@ final class RadioViewModelTests: XCTestCase {
             serviceId: "bbc_radio_one"
         )
 
-        let info1 = NowPlayingInfo(artist: "Artist 1", title: "Track 1", artworkURL: nil)
-        let info2 = NowPlayingInfo(artist: "Artist 2", title: "Track 2", artworkURL: nil)
+        let info1 = NowPlayingInfo(artist: "Artist 1", title: "Track 1", artworkURL: nil, artworkURLTemplate: nil)
+        let info2 = NowPlayingInfo(artist: "Artist 2", title: "Track 2", artworkURL: nil, artworkURLTemplate: nil)
 
         // Play first station
         mockNowPlayingService.mockNowPlayingInfo = info1

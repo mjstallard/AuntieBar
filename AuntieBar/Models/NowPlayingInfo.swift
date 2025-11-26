@@ -5,6 +5,21 @@ struct NowPlayingInfo: Equatable, Sendable {
     let artist: String?
     let title: String?
     let artworkURL: URL?
+    let artworkURLTemplate: String?  // Original template URL with {recipe} placeholder
+
+    /// All possible artwork URLs (primary first, then fallbacks) with duplicates removed
+    var artworkCandidates: [URL] {
+        var candidates: [URL] = []
+
+        if let artworkURL {
+            candidates.append(artworkURL)
+        }
+
+        candidates.append(contentsOf: fallbackArtworkURLs)
+
+        var seen = Set<URL>()
+        return candidates.filter { seen.insert($0).inserted }
+    }
 
     /// Returns true if there's any metadata available
     var hasMetadata: Bool {
@@ -17,6 +32,15 @@ struct NowPlayingInfo: Equatable, Sendable {
             return nil
         }
         return "\(artist) – \(title)"
+    }
+
+    /// Generate fallback artwork URLs with different recipes
+    var fallbackArtworkURLs: [URL] {
+        guard let template = artworkURLTemplate else { return [] }
+        let recipes = ["256x256", "192x192", "128x128", "64x64"]
+        return recipes.compactMap { recipe in
+            URL(string: template.replacingOccurrences(of: "{recipe}", with: recipe))
+        }
     }
 }
 

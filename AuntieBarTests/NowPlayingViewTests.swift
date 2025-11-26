@@ -15,7 +15,8 @@ final class NowPlayingViewTests: XCTestCase {
         let nowPlayingInfo = NowPlayingInfo(
             artist: "Ola Gjeilo",
             title: "Serenity [O magnum mysterium]",
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
 
         // When
@@ -36,7 +37,8 @@ final class NowPlayingViewTests: XCTestCase {
         let longTrackInfo = NowPlayingInfo(
             artist: "Amy Wadge",
             title: "Unwaith Eto, Rwy'n Teimlo Fy Mod I'n Angen Mwy Na'r Hyn Sydd Gen I",
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
 
         // When
@@ -76,7 +78,8 @@ final class NowPlayingViewTests: XCTestCase {
         let nowPlayingInfo = NowPlayingInfo(
             artist: "Radiohead",
             title: "Paranoid Android",
-            artworkURL: URL(string: "https://example.com/artwork.jpg")
+            artworkURL: URL(string: "https://example.com/artwork.jpg"),
+            artworkURLTemplate: nil
         )
 
         // When
@@ -99,7 +102,8 @@ final class NowPlayingViewTests: XCTestCase {
         let partialInfo = NowPlayingInfo(
             artist: "Artist Only",
             title: nil,
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
 
         // When
@@ -121,7 +125,8 @@ final class NowPlayingViewTests: XCTestCase {
         let trackInfo = NowPlayingInfo(
             artist: "Ludwig van Beethoven",
             title: "Symphony No. 9 in D minor, Op. 125 'Choral' - IV. Finale: Ode to Joy",
-            artworkURL: nil
+            artworkURL: nil,
+            artworkURLTemplate: nil
         )
 
         // When
