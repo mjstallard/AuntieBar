@@ -11,6 +11,7 @@ final class RadioViewModel {
     private(set) var errorMessage: String?
     private(set) var isLoading = false
     private(set) var nowPlayingInfo: NowPlayingInfo?
+    private(set) var audioQualityMetrics: AudioQualityMetrics?
     var volume: Double = 0.5 {
         didSet {
             player.volume = volume
@@ -26,14 +27,20 @@ final class RadioViewModel {
     // MARK: - Dependencies
     private let player: RadioPlayerProtocol
     private let nowPlayingService: any NowPlayingServiceProtocol
+    private let pollingInterval: TimeInterval
     private var cancellables = Set<AnyCancellable>()
     private var pollingTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
-    init(player: RadioPlayerProtocol = RadioPlayer.shared, nowPlayingService: any NowPlayingServiceProtocol = NowPlayingService()) {
+    init(
+        player: RadioPlayerProtocol = RadioPlayer.shared,
+        nowPlayingService: any NowPlayingServiceProtocol = NowPlayingService(),
+        pollingInterval: TimeInterval = 30.0
+    ) {
         self.player = player
         self.nowPlayingService = nowPlayingService
+        self.pollingInterval = pollingInterval
         self.allStations = RadioStationsData.allStations
         self.stationsByCategory = RadioStationsData.stationsByCategory
         self.sortedCategories = RadioStationsData.sortedCategories
@@ -103,6 +110,14 @@ final class RadioViewModel {
                 self?.playbackState = state
             }
             .store(in: &cancellables)
+
+        // Observe audio quality metrics changes
+        player.metricsPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] metrics in
+                self?.audioQualityMetrics = metrics
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Now Playing
@@ -120,8 +135,8 @@ final class RadioViewModel {
 
         pollingTask = Task {
             while !Task.isCancelled {
-                // Wait 30 seconds
-                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                // Wait for polling interval
+                try? await Task.sleep(nanoseconds: UInt64(pollingInterval * 1_000_000_000))
 
                 guard !Task.isCancelled else { break }
 

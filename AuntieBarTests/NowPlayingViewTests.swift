@@ -20,7 +20,7 @@ final class NowPlayingViewTests: XCTestCase {
         )
 
         // When
-        let view = NowPlayingView(station: station, nowPlayingInfo: nowPlayingInfo)
+        let view = NowPlayingView(station: station, nowPlayingInfo: nowPlayingInfo, audioQualityMetrics: nil)
 
         // Then - View should be created successfully
         XCTAssertNotNil(view)
@@ -42,7 +42,7 @@ final class NowPlayingViewTests: XCTestCase {
         )
 
         // When
-        let view = NowPlayingView(station: station, nowPlayingInfo: longTrackInfo)
+        let view = NowPlayingView(station: station, nowPlayingInfo: longTrackInfo, audioQualityMetrics: nil)
 
         // Then - View should be created successfully with long text
         XCTAssertNotNil(view)
@@ -61,7 +61,7 @@ final class NowPlayingViewTests: XCTestCase {
         )
 
         // When
-        let view = NowPlayingView(station: station, nowPlayingInfo: nil)
+        let view = NowPlayingView(station: station, nowPlayingInfo: nil, audioQualityMetrics: nil)
 
         // Then - View should handle nil nowPlayingInfo gracefully
         XCTAssertNotNil(view)
@@ -83,7 +83,7 @@ final class NowPlayingViewTests: XCTestCase {
         )
 
         // When
-        let view = NowPlayingView(station: station, nowPlayingInfo: nowPlayingInfo)
+        let view = NowPlayingView(station: station, nowPlayingInfo: nowPlayingInfo, audioQualityMetrics: nil)
 
         // Then - View should be created with artwork
         XCTAssertNotNil(view)
@@ -107,7 +107,7 @@ final class NowPlayingViewTests: XCTestCase {
         )
 
         // When
-        let view = NowPlayingView(station: station, nowPlayingInfo: partialInfo)
+        let view = NowPlayingView(station: station, nowPlayingInfo: partialInfo, audioQualityMetrics: nil)
 
         // Then - View should handle partial metadata
         XCTAssertNotNil(view)
@@ -130,7 +130,7 @@ final class NowPlayingViewTests: XCTestCase {
         )
 
         // When
-        let view = NowPlayingView(station: station, nowPlayingInfo: trackInfo)
+        let view = NowPlayingView(station: station, nowPlayingInfo: trackInfo, audioQualityMetrics: nil)
 
         // Then - The formatted track info should be available for popover display
         XCTAssertNotNil(view)

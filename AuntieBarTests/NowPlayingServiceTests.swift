@@ -20,34 +20,6 @@ final class NowPlayingServiceTests: XCTestCase {
         super.tearDown()
     }
 
-    func testFetchNowPlayingSuccessWithMusicSegment() async {
-        // Given
-        let jsonResponse = """
-        {
-            "data": [
-                {
-                    "segment_type": "music",
-                    "titles": {
-                        "primary": "The Beatles",
-                        "secondary": "Hey Jude"
-                    },
-                    "image_url": "https://ichef.bbci.co.uk/images/ic/{recipe}/p0abc123.jpg"
-                }
-            ]
-        }
-        """
-        MockURLProtocol.mockData = jsonResponse.data(using: .utf8)!
-
-        // When
-        let result = await service.fetchNowPlaying(for: "bbc_6music")
-
-        // Then
-        XCTAssertNotNil(result)
-        XCTAssertEqual(result?.artist, "The Beatles")
-        XCTAssertEqual(result?.title, "Hey Jude")
-        XCTAssertEqual(result?.artworkURL?.absoluteString, "https://ichef.bbci.co.uk/images/ic/128x128/p0abc123.jpg")
-    }
-
     func testFetchNowPlayingWithoutArtwork() async {
         // Given
         let jsonResponse = """

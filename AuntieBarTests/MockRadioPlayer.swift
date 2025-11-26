@@ -18,9 +18,14 @@ final class MockRadioPlayer: RadioPlayerProtocol {
     var lastPlayedStation: RadioStation?
 
     private let stateSubject = PassthroughSubject<PlaybackState, Never>()
+    private let metricsSubject = PassthroughSubject<AudioQualityMetrics?, Never>()
 
     var statePublisher: AnyPublisher<PlaybackState, Never> {
         stateSubject.eraseToAnyPublisher()
+    }
+
+    var metricsPublisher: AnyPublisher<AudioQualityMetrics?, Never> {
+        metricsSubject.eraseToAnyPublisher()
     }
 
     func play(station: RadioStation) async throws {
@@ -34,10 +39,6 @@ final class MockRadioPlayer: RadioPlayerProtocol {
 
         playbackState = .loading
         currentStation = station
-
-        // Simulate async loading
-        try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-
         playbackState = .playing(station)
     }
 

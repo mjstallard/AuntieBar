@@ -4,7 +4,9 @@ import SwiftUI
 struct NowPlayingView: View {
     let station: RadioStation
     let nowPlayingInfo: NowPlayingInfo?
-    @State private var isHovering = false
+    let audioQualityMetrics: AudioQualityMetrics?
+    @State private var isHoveringStation = false
+    @State private var isHoveringTrack = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -25,6 +27,18 @@ struct NowPlayingView: View {
                 Text(station.name)
                     .font(.headline)
                     .lineLimit(1)
+                    .onHover { hovering in
+                        isHoveringStation = hovering
+                    }
+                    .popover(isPresented: $isHoveringStation, arrowEdge: .trailing) {
+                        if let metrics = audioQualityMetrics {
+                            AudioQualityPopover(metrics: metrics)
+                        } else {
+                            Text("Loading quality info...")
+                                .font(.callout)
+                                .padding(8)
+                        }
+                    }
 
                 if let trackInfo = nowPlayingInfo?.formattedTrackInfo {
                     Text(trackInfo)
@@ -33,9 +47,9 @@ struct NowPlayingView: View {
                         .lineLimit(2)
                         .truncationMode(.tail)
                         .onHover { hovering in
-                            isHovering = hovering
+                            isHoveringTrack = hovering
                         }
-                        .popover(isPresented: $isHovering, arrowEdge: .bottom) {
+                        .popover(isPresented: $isHoveringTrack, arrowEdge: .bottom) {
                             Text(trackInfo)
                                 .font(.callout)
                                 .padding(8)

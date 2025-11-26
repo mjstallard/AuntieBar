@@ -11,7 +11,8 @@ struct MenuBarView: View {
             if let station = viewModel.currentStation {
                 NowPlayingView(
                     station: station,
-                    nowPlayingInfo: viewModel.nowPlayingInfo
+                    nowPlayingInfo: viewModel.nowPlayingInfo,
+                    audioQualityMetrics: viewModel.audioQualityMetrics
                 )
 
                 Divider()

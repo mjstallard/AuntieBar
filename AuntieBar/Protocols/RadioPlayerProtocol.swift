@@ -8,6 +8,7 @@ protocol RadioPlayerProtocol: AnyObject {
     var currentStation: RadioStation? { get }
     var volume: Double { get set }
     var statePublisher: AnyPublisher<PlaybackState, Never> { get }
+    var metricsPublisher: AnyPublisher<AudioQualityMetrics?, Never> { get }
 
     func play(station: RadioStation) async throws
     func stop()

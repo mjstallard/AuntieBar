@@ -13,6 +13,12 @@ final class RadioPlayer: RadioPlayerProtocol {
 
     private(set) var currentStation: RadioStation?
 
+    private(set) var audioQualityMetrics: AudioQualityMetrics? {
+        didSet {
+            metricsSubject.send(audioQualityMetrics)
+        }
+    }
+
     var volume: Double {
         get { Double(player?.volume ?? 0.5) }
         set { player?.volume = Float(newValue) }
@@ -20,16 +26,23 @@ final class RadioPlayer: RadioPlayerProtocol {
 
     private var player: AVPlayer?
     private var playerObserver: NSKeyValueObservation?
+    private var metricsTimer: Timer?
     private let stateSubject = PassthroughSubject<PlaybackState, Never>()
+    private let metricsSubject = PassthroughSubject<AudioQualityMetrics?, Never>()
 
     var statePublisher: AnyPublisher<PlaybackState, Never> {
         stateSubject.eraseToAnyPublisher()
+    }
+
+    var metricsPublisher: AnyPublisher<AudioQualityMetrics?, Never> {
+        metricsSubject.eraseToAnyPublisher()
     }
 
     private init() {}
 
     deinit {
         playerObserver?.invalidate()
+        metricsTimer?.invalidate()
     }
 
     func play(station: RadioStation) async throws {
@@ -39,6 +52,8 @@ final class RadioPlayer: RadioPlayerProtocol {
         // Clean up existing player
         player?.pause()
         playerObserver?.invalidate()
+        metricsTimer?.invalidate()
+        audioQualityMetrics = nil
 
         let playerItem = AVPlayerItem(url: station.streamURL)
         let newPlayer = AVPlayer(playerItem: playerItem)
@@ -52,6 +67,9 @@ final class RadioPlayer: RadioPlayerProtocol {
         // Observe player status for error handling
         observePlayerStatus(for: playerItem, station: station)
 
+        // Start metrics monitoring
+        startMetricsMonitoring()
+
         player?.play()
         playbackState = .playing(station)
     }
@@ -59,7 +77,9 @@ final class RadioPlayer: RadioPlayerProtocol {
     func stop() {
         player?.pause()
         playerObserver?.invalidate()
+        metricsTimer?.invalidate()
         currentStation = nil
+        audioQualityMetrics = nil
         playbackState = .idle
     }
 
@@ -79,6 +99,8 @@ final class RadioPlayer: RadioPlayerProtocol {
                 if case .loading = self.playbackState {
                     self.playbackState = .playing(station)
                 }
+                // Extract initial format information when ready
+                self.updateAudioQualityMetrics()
 
             case .unknown:
                 break
@@ -86,6 +108,120 @@ final class RadioPlayer: RadioPlayerProtocol {
             @unknown default:
                 break
             }
+        }
+    }
+
+    // MARK: - Audio Quality Metrics
+
+    private func startMetricsMonitoring() {
+        // Update metrics immediately
+        updateAudioQualityMetrics()
+
+        // Then update every 5 seconds
+        metricsTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.updateAudioQualityMetrics()
+        }
+    }
+
+    private func updateAudioQualityMetrics() {
+        guard let playerItem = player?.currentItem else {
+            audioQualityMetrics = nil
+            return
+        }
+
+        // Extract metrics from access log
+        var indicatedBitrate: Double?
+        var observedBitrate: Double?
+        var stallCount: Int?
+        var bytesTransferred: Int64?
+
+        if let accessLog = playerItem.accessLog(),
+           let lastEvent = accessLog.events.last {
+            indicatedBitrate = lastEvent.indicatedBitrate > 0 ? lastEvent.indicatedBitrate : nil
+            observedBitrate = lastEvent.observedBitrate > 0 ? lastEvent.observedBitrate : nil
+            stallCount = lastEvent.numberOfStalls
+            bytesTransferred = lastEvent.numberOfBytesTransferred
+        }
+
+        // Extract format information from asset tracks asynchronously
+        let asset = playerItem.asset
+        Task {
+            let (sampleRate, channelCount, codec) = await extractAudioFormat(from: asset)
+
+            // Update metrics on main thread
+            await MainActor.run {
+                self.audioQualityMetrics = AudioQualityMetrics(
+                    indicatedBitrate: indicatedBitrate,
+                    observedBitrate: observedBitrate,
+                    sampleRate: sampleRate,
+                    channelCount: channelCount,
+                    codec: codec,
+                    stallCount: stallCount,
+                    bytesTransferred: bytesTransferred
+                )
+            }
+        }
+    }
+
+    private func extractAudioFormat(from asset: AVAsset) async -> (sampleRate: Double?, channelCount: Int?, codec: String?) {
+        // For HLS streams (like BBC Radio), we need to parse the manifest or use URL info
+        // Standard AVAsset track loading doesn't work for HLS
+
+        guard let urlAsset = asset as? AVURLAsset else {
+            return (nil, nil, nil)
+        }
+
+        let streamURL = urlAsset.url
+        let urlString = streamURL.absoluteString
+
+        var sampleRate: Double?
+        var channelCount: Int?
+        var codec: String?
+
+        // Detect BBC streams and use known format specs
+        if urlString.contains("bbc_radio") || urlString.contains("bbc.co.uk") {
+            // BBC streams are AAC, 48kHz, stereo
+            codec = "AAC"
+            channelCount = 2
+            sampleRate = 48000
+        } else {
+            // Try to fetch and parse the m3u8 manifest for non-BBC streams
+            if let data = try? await URLSession.shared.data(from: streamURL).0,
+               let manifestString = String(data: data, encoding: .utf8),
+               let codecMatch = manifestString.range(of: #"CODECS="([^"]+)""#, options: .regularExpression) {
+
+                let codecStr = String(manifestString[codecMatch])
+                if codecStr.contains("mp4a") {
+                    codec = "AAC"
+                    channelCount = 2
+                    sampleRate = 48000
+                }
+            }
+        }
+
+        return (sampleRate, channelCount, codec)
+    }
+
+    private func codecNameFromFourCC(_ fourCC: FourCharCode) -> String {
+        // Convert FourCharCode to string
+        let chars = [
+            UInt8((fourCC >> 24) & 0xFF),
+            UInt8((fourCC >> 16) & 0xFF),
+            UInt8((fourCC >> 8) & 0xFF),
+            UInt8(fourCC & 0xFF)
+        ]
+
+        // Try to create ASCII string
+        if let name = String(bytes: chars, encoding: .ascii) {
+            return name.trimmingCharacters(in: .whitespaces)
+        }
+
+        // Fallback to known codec types
+        switch fourCC {
+        case kAudioFormatMPEG4AAC: return "AAC"
+        case kAudioFormatMPEGLayer3: return "MP3"
+        case kAudioFormatAppleLossless: return "ALAC"
+        default: return "Unknown"
         }
     }
 }
