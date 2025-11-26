@@ -107,7 +107,7 @@ private struct ProgrammeSchedulePopover: View {
                     .padding(.vertical, 4)
 
                 ForEach(upcomingSlots, id: \.startTime) { slot in
-                    Text("Next at \(format(slot.startTime)): \(slot.title)")
+                    Text("\(format(slot.startTime)): \(slot.title)")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
