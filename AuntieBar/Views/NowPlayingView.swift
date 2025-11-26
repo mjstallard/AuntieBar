@@ -110,7 +110,7 @@ private struct ProgrammeSchedulePopover: View {
                     Text("\(format(slot.startTime)): \(slot.title)")
                         .font(.callout)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(nil)
                 }
             } else {
                 Text("Next programme information unavailable")
@@ -120,7 +120,6 @@ private struct ProgrammeSchedulePopover: View {
             }
         }
         .padding(10)
-        .frame(maxWidth: 260, alignment: .leading)
     }
 
     private func format(_ date: Date) -> String {
