@@ -7,7 +7,6 @@ struct NowPlayingView: View {
     let nowNextInfo: NowNextInfo?
     let audioQualityMetrics: AudioQualityMetrics?
     @State private var isHoveringStation = false
-    @State private var isHoveringTrack = false
     @State private var isHoveringProgramme = false
 
     var body: some View {
@@ -67,17 +66,7 @@ struct NowPlayingView: View {
                     Text(trackInfo)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                        .truncationMode(.tail)
-                        .onHover { hovering in
-                            isHoveringTrack = hovering
-                        }
-                        .popover(isPresented: $isHoveringTrack, arrowEdge: .bottom) {
-                            Text(trackInfo)
-                                .font(.callout)
-                                .padding(8)
-                                .frame(maxWidth: 280)
-                        }
+                        .lineLimit(nil) // allow full wrapping for long track titles
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
