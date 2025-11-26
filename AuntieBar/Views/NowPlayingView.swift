@@ -22,7 +22,7 @@ struct NowPlayingView: View {
                     .frame(width: 64, height: 64)
             }
 
-            // Station name and track info
+            // Station name, programme, and track info
             VStack(alignment: .leading, spacing: 4) {
                 Text(station.name)
                     .font(.headline)
@@ -39,6 +39,13 @@ struct NowPlayingView: View {
                                 .padding(8)
                         }
                     }
+
+                if let programmeTitle = nowPlayingInfo?.programmeTitle {
+                    Text(programmeTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
 
                 if let trackInfo = nowPlayingInfo?.formattedTrackInfo {
                     Text(trackInfo)

@@ -150,6 +150,93 @@ final class NowPlayingServiceTests: XCTestCase {
         XCTAssertEqual(result?.artist, "Artist Name")
         XCTAssertNil(result?.title)
     }
+
+    func testFetchNowPlayingIncludesProgrammeInfo() async {
+        // Given - Mock both segments and broadcasts endpoints
+        let serviceId = "bbc_6music"
+
+        // First request will be segments, second will be broadcasts
+        var requestCount = 0
+        MockURLProtocol.mockDataProvider = { url in
+            requestCount += 1
+            if url.absoluteString.contains("/segments/") {
+                return """
+                {
+                    "data": [
+                        {
+                            "segment_type": "music",
+                            "titles": {
+                                "primary": "Radiohead",
+                                "secondary": "Creep"
+                            }
+                        }
+                    ]
+                }
+                """.data(using: .utf8)!
+            } else if url.absoluteString.contains("/broadcasts/") {
+                return """
+                {
+                    "data": [
+                        {
+                            "titles": {
+                                "primary": "Chris Hawkins"
+                            },
+                            "synopses": {
+                                "short": "Chris with the early morning breakfast show"
+                            }
+                        }
+                    ]
+                }
+                """.data(using: .utf8)!
+            }
+            return "{}".data(using: .utf8)!
+        }
+
+        // When
+        let result = await service.fetchNowPlaying(for: serviceId)
+
+        // Then
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.artist, "Radiohead")
+        XCTAssertEqual(result?.title, "Creep")
+        XCTAssertEqual(result?.programmeTitle, "Chris Hawkins")
+        XCTAssertEqual(result?.programmeSynopsis, "Chris with the early morning breakfast show")
+    }
+
+    func testFetchNowPlayingSucceedsEvenIfBroadcastFails() async {
+        // Given - Mock segments to succeed but broadcasts to fail
+        MockURLProtocol.mockDataProvider = { url in
+            if url.absoluteString.contains("/segments/") {
+                return """
+                {
+                    "data": [
+                        {
+                            "segment_type": "music",
+                            "titles": {
+                                "primary": "The Beatles",
+                                "secondary": "Hey Jude"
+                            }
+                        }
+                    ]
+                }
+                """.data(using: .utf8)!
+            } else if url.absoluteString.contains("/broadcasts/") {
+                // Return invalid JSON to simulate failure
+                return "invalid json".data(using: .utf8)!
+            }
+            return "{}".data(using: .utf8)!
+        }
+
+        // When
+        let result = await service.fetchNowPlaying(for: "bbc_radio_one")
+
+        // Then - Should still return track info even if programme info fails
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.artist, "The Beatles")
+        XCTAssertEqual(result?.title, "Hey Jude")
+        XCTAssertNil(result?.programmeTitle)
+        XCTAssertNil(result?.programmeSynopsis)
+    }
 }
 
 // MARK: - Mock URLProtocol
@@ -158,11 +245,13 @@ class MockURLProtocol: URLProtocol {
     static var mockData: Data?
     static var mockError: Error?
     static var lastRequestedURL: URL?
+    static var mockDataProvider: ((URL) -> Data)?
 
     static func reset() {
         mockData = nil
         mockError = nil
         lastRequestedURL = nil
+        mockDataProvider = nil
     }
 
     override class func canInit(with request: URLRequest) -> Bool {
@@ -191,7 +280,15 @@ class MockURLProtocol: URLProtocol {
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         }
 
-        if let data = MockURLProtocol.mockData {
+        // Use mockDataProvider if available, otherwise use mockData
+        let data: Data?
+        if let provider = MockURLProtocol.mockDataProvider, let url = request.url {
+            data = provider(url)
+        } else {
+            data = MockURLProtocol.mockData
+        }
+
+        if let data = data {
             client?.urlProtocol(self, didLoad: data)
         }
 

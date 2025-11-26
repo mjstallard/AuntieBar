@@ -12,7 +12,9 @@ final class NowPlayingInfoTests: XCTestCase {
             artist: "The Beatles",
             title: "Hey Jude",
             artworkURL: artworkURL,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // Then
@@ -29,7 +31,9 @@ final class NowPlayingInfoTests: XCTestCase {
             artist: nil,
             title: nil,
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // Then
@@ -46,7 +50,9 @@ final class NowPlayingInfoTests: XCTestCase {
             artist: "Radiohead",
             title: nil,
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // Then
@@ -62,7 +68,9 @@ final class NowPlayingInfoTests: XCTestCase {
             artist: nil,
             title: "Creep",
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // Then
@@ -79,19 +87,25 @@ final class NowPlayingInfoTests: XCTestCase {
             artist: "The Beatles",
             title: "Hey Jude",
             artworkURL: artworkURL,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
         let info2 = NowPlayingInfo(
             artist: "The Beatles",
             title: "Hey Jude",
             artworkURL: artworkURL,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
         let info3 = NowPlayingInfo(
             artist: "Radiohead",
             title: "Creep",
             artworkURL: artworkURL,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // Then
@@ -105,7 +119,9 @@ final class NowPlayingInfoTests: XCTestCase {
             artist: "Pink Floyd",
             title: "Comfortably Numb",
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // Then
@@ -120,7 +136,9 @@ final class NowPlayingInfoTests: XCTestCase {
             artist: nil,
             title: nil,
             artworkURL: nil,
-            artworkURLTemplate: template
+            artworkURLTemplate: template,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // When
@@ -144,7 +162,9 @@ final class NowPlayingInfoTests: XCTestCase {
             artist: "Artist",
             title: "Title",
             artworkURL: primary,
-            artworkURLTemplate: template
+            artworkURLTemplate: template,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // When

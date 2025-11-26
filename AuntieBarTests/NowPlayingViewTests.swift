@@ -16,7 +16,9 @@ final class NowPlayingViewTests: XCTestCase {
             artist: "Ola Gjeilo",
             title: "Serenity [O magnum mysterium]",
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // When
@@ -38,7 +40,9 @@ final class NowPlayingViewTests: XCTestCase {
             artist: "Amy Wadge",
             title: "Unwaith Eto, Rwy'n Teimlo Fy Mod I'n Angen Mwy Na'r Hyn Sydd Gen I",
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // When
@@ -79,7 +83,9 @@ final class NowPlayingViewTests: XCTestCase {
             artist: "Radiohead",
             title: "Paranoid Android",
             artworkURL: URL(string: "https://example.com/artwork.jpg"),
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // When
@@ -103,7 +109,9 @@ final class NowPlayingViewTests: XCTestCase {
             artist: "Artist Only",
             title: nil,
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // When
@@ -126,7 +134,9 @@ final class NowPlayingViewTests: XCTestCase {
             artist: "Ludwig van Beethoven",
             title: "Symphony No. 9 in D minor, Op. 125 'Choral' - IV. Finale: Ode to Joy",
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // When
@@ -136,5 +146,57 @@ final class NowPlayingViewTests: XCTestCase {
         XCTAssertNotNil(view)
         let expectedText = "Ludwig van Beethoven – Symphony No. 9 in D minor, Op. 125 'Choral' - IV. Finale: Ode to Joy"
         XCTAssertEqual(trackInfo.formattedTrackInfo, expectedText)
+    }
+
+    func testNowPlayingViewDisplaysProgrammeTitle() {
+        // Given
+        let station = RadioStation(
+            name: "Radio 6 Music",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_6music"
+        )
+        let nowPlayingInfo = NowPlayingInfo(
+            artist: "Radiohead",
+            title: "Creep",
+            artworkURL: nil,
+            artworkURLTemplate: nil,
+            programmeTitle: "Chris Hawkins",
+            programmeSynopsis: "Chris with the early morning breakfast show"
+        )
+
+        // When
+        let view = NowPlayingView(station: station, nowPlayingInfo: nowPlayingInfo, audioQualityMetrics: nil)
+
+        // Then - View should be created with programme info
+        XCTAssertNotNil(view)
+        XCTAssertEqual(nowPlayingInfo.programmeTitle, "Chris Hawkins")
+        XCTAssertEqual(nowPlayingInfo.programmeSynopsis, "Chris with the early morning breakfast show")
+    }
+
+    func testNowPlayingViewWorksWithoutProgrammeInfo() {
+        // Given
+        let station = RadioStation(
+            name: "Radio 1",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_radio_one"
+        )
+        let nowPlayingInfo = NowPlayingInfo(
+            artist: "The Beatles",
+            title: "Hey Jude",
+            artworkURL: nil,
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
+        )
+
+        // When
+        let view = NowPlayingView(station: station, nowPlayingInfo: nowPlayingInfo, audioQualityMetrics: nil)
+
+        // Then - View should handle missing programme info gracefully
+        XCTAssertNotNil(view)
+        XCTAssertNil(nowPlayingInfo.programmeTitle)
+        XCTAssertNil(nowPlayingInfo.programmeSynopsis)
     }
 }

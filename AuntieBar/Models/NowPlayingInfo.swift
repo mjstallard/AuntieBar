@@ -6,6 +6,8 @@ struct NowPlayingInfo: Equatable, Sendable {
     let title: String?
     let artworkURL: URL?
     let artworkURLTemplate: String?  // Original template URL with {recipe} placeholder
+    let programmeTitle: String?  // The show/programme name (e.g., "Chris Hawkins")
+    let programmeSynopsis: String?  // Short description of the show
 
     /// All possible artwork URLs (primary first, then fallbacks) with duplicates removed
     var artworkCandidates: [URL] {
@@ -66,4 +68,28 @@ struct BBCSegment: Codable, @unchecked Sendable {
 struct BBCTitles: Codable, @unchecked Sendable {
     let primary: String?
     let secondary: String?
+}
+
+// MARK: - Broadcast API Response
+
+struct BBCBroadcastResponse: Codable, @unchecked Sendable {
+    let data: [BBCBroadcast]
+}
+
+struct BBCBroadcast: Codable, @unchecked Sendable {
+    let titles: BBCBroadcastTitles?
+    let synopses: BBCBroadcastSynopses?
+
+    enum CodingKeys: String, CodingKey {
+        case titles
+        case synopses
+    }
+}
+
+struct BBCBroadcastTitles: Codable, @unchecked Sendable {
+    let primary: String?
+}
+
+struct BBCBroadcastSynopses: Codable, @unchecked Sendable {
+    let short: String?
 }

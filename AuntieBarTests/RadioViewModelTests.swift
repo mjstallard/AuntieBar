@@ -252,7 +252,9 @@ final class RadioViewModelTests: XCTestCase {
             artist: "Radiohead",
             title: "Creep",
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
         mockNowPlayingService.mockNowPlayingInfo = expectedInfo
 
@@ -282,7 +284,9 @@ final class RadioViewModelTests: XCTestCase {
             artist: "Test Artist",
             title: "Test Track",
             artworkURL: nil,
-            artworkURLTemplate: nil
+            artworkURLTemplate: nil,
+            programmeTitle: nil,
+            programmeSynopsis: nil
         )
 
         // Start playback
