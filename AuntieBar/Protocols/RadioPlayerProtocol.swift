@@ -11,6 +11,8 @@ protocol RadioPlayerProtocol: AnyObject {
     var metricsPublisher: AnyPublisher<AudioQualityMetrics?, Never> { get }
 
     func play(station: RadioStation) async throws
+    func pause()
+    func resume()
     func stop()
 }
 
@@ -19,10 +21,16 @@ enum PlaybackState: Equatable {
     case idle
     case loading
     case playing(RadioStation)
+    case paused(RadioStation)
     case failed(RadioPlayerError)
 
     var isPlaying: Bool {
         if case .playing = self { return true }
+        return false
+    }
+
+    var isPaused: Bool {
+        if case .paused = self { return true }
         return false
     }
 }

@@ -41,6 +41,21 @@ final class PlaybackStateTests: XCTestCase {
         XCTAssertFalse(state.isPlaying)
     }
 
+    func testPausedIsNotPlaying() {
+        // Given
+        let station = RadioStation(
+            name: "Test",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_test"
+        )
+        let state = PlaybackState.paused(station)
+
+        // Then
+        XCTAssertFalse(state.isPlaying)
+        XCTAssertTrue(state.isPaused)
+    }
+
     func testPlaybackStateEquality() {
         // Given
         let station = RadioStation(
@@ -54,6 +69,7 @@ final class PlaybackStateTests: XCTestCase {
         XCTAssertEqual(PlaybackState.idle, PlaybackState.idle)
         XCTAssertEqual(PlaybackState.loading, PlaybackState.loading)
         XCTAssertEqual(PlaybackState.playing(station), PlaybackState.playing(station))
+        XCTAssertEqual(PlaybackState.paused(station), PlaybackState.paused(station))
         XCTAssertEqual(
             PlaybackState.failed(.networkError),
             PlaybackState.failed(.networkError)

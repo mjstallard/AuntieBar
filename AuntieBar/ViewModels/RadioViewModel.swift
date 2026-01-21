@@ -29,6 +29,7 @@ final class RadioViewModel {
     private let player: RadioPlayerProtocol
     private let nowPlayingService: any NowPlayingServiceProtocol
     private let pollingInterval: TimeInterval
+    private let remoteCommandService: RemoteCommandService
     private var cancellables = Set<AnyCancellable>()
     private var pollingTask: Task<Void, Never>?
 
@@ -37,11 +38,13 @@ final class RadioViewModel {
     init(
         player: RadioPlayerProtocol = RadioPlayer.shared,
         nowPlayingService: any NowPlayingServiceProtocol = NowPlayingService(),
-        pollingInterval: TimeInterval = 30.0
+        pollingInterval: TimeInterval = 30.0,
+        remoteCommandService: RemoteCommandService = .shared
     ) {
         self.player = player
         self.nowPlayingService = nowPlayingService
         self.pollingInterval = pollingInterval
+        self.remoteCommandService = remoteCommandService
         self.allStations = RadioStationsData.allStations
         self.stationsByCategory = RadioStationsData.stationsByCategory
         self.sortedCategories = RadioStationsData.sortedCategories
@@ -52,6 +55,7 @@ final class RadioViewModel {
         player.volume = savedVolume
 
         setupBindings()
+        remoteCommandService.bind(to: self)
     }
 
     deinit {
@@ -90,9 +94,31 @@ final class RadioViewModel {
         nowNextInfo = nil
     }
 
+    func pause() {
+        Task { @MainActor in
+            player.pause()
+            stopPolling()
+        }
+    }
+
+    func resume() {
+        Task { @MainActor in
+            guard let station = currentStation else { return }
+            player.resume()
+            await fetchNowPlayingInfo(for: station)
+            startPolling(for: station)
+        }
+    }
+
     func togglePlayback(for station: RadioStation) {
-        if currentStation?.id == station.id && playbackState.isPlaying {
-            stop()
+        if currentStation?.id == station.id {
+            if playbackState.isPlaying {
+                stop()
+            } else if playbackState.isPaused {
+                resume()
+            } else {
+                play(station: station)
+            }
         } else {
             play(station: station)
         }
@@ -109,7 +135,14 @@ final class RadioViewModel {
         player.statePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
-                self?.playbackState = state
+                guard let self else { return }
+                self.playbackState = state
+                self.remoteCommandService.updateCommandAvailability(for: state)
+                self.remoteCommandService.updateNowPlayingInfo(
+                    station: self.currentStation,
+                    nowPlayingInfo: self.nowPlayingInfo,
+                    playbackState: state
+                )
             }
             .store(in: &cancellables)
 
@@ -132,6 +165,11 @@ final class RadioViewModel {
         await MainActor.run {
             nowPlayingInfo = nowPlaying
             nowNextInfo = schedule
+            remoteCommandService.updateNowPlayingInfo(
+                station: currentStation,
+                nowPlayingInfo: nowPlayingInfo,
+                playbackState: playbackState
+            )
         }
     }
 
@@ -155,5 +193,39 @@ final class RadioViewModel {
     private func stopPolling() {
         pollingTask?.cancel()
         pollingTask = nil
+    }
+
+    // MARK: - Remote Commands
+
+    func handleRemotePlayPause() -> Bool {
+        if playbackState.isPlaying {
+            pause()
+            return true
+        }
+
+        if playbackState.isPaused {
+            resume()
+            return true
+        }
+
+        return false
+    }
+
+    func handleRemotePlay() -> Bool {
+        if playbackState.isPaused {
+            resume()
+            return true
+        }
+
+        return false
+    }
+
+    func handleRemotePause() -> Bool {
+        if playbackState.isPlaying {
+            pause()
+            return true
+        }
+
+        return false
     }
 }

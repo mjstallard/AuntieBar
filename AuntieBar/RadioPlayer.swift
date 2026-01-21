@@ -79,6 +79,18 @@ final class RadioPlayer: RadioPlayerProtocol {
         playbackState = .playing(station)
     }
 
+    func pause() {
+        guard let station = currentStation, playbackState.isPlaying else { return }
+        player?.pause()
+        playbackState = .paused(station)
+    }
+
+    func resume() {
+        guard let station = currentStation, playbackState.isPaused else { return }
+        player?.play()
+        playbackState = .playing(station)
+    }
+
     func stop() {
         player?.pause()
         playerObserver?.invalidate()

@@ -14,6 +14,8 @@ final class MockRadioPlayer: RadioPlayerProtocol {
 
     var shouldFailPlayback = false
     var playCallCount = 0
+    var pauseCallCount = 0
+    var resumeCallCount = 0
     var stopCallCount = 0
     var lastPlayedStation: RadioStation?
 
@@ -48,9 +50,23 @@ final class MockRadioPlayer: RadioPlayerProtocol {
         currentStation = nil
     }
 
+    func pause() {
+        pauseCallCount += 1
+        guard let station = currentStation else { return }
+        playbackState = .paused(station)
+    }
+
+    func resume() {
+        resumeCallCount += 1
+        guard let station = currentStation else { return }
+        playbackState = .playing(station)
+    }
+
     // Test helpers
     func reset() {
         playCallCount = 0
+        pauseCallCount = 0
+        resumeCallCount = 0
         stopCallCount = 0
         lastPlayedStation = nil
         shouldFailPlayback = false
