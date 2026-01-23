@@ -68,6 +68,31 @@ final class RadioViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
     }
 
+    func testResumeFromPauseCallsPlayerAndFetchesNowPlaying() async {
+        // Given
+        let station = RadioStation(
+            name: "Test Station",
+            streamURL: URL(string: "http://example.com/stream.m3u8")!,
+            category: .national,
+            serviceId: "bbc_test"
+        )
+
+        viewModel.play(station: station)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // When
+        viewModel.pause()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        let fetchCountAfterPause = mockNowPlayingService.fetchCallCount
+
+        viewModel.resume()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then
+        XCTAssertEqual(mockPlayer.resumeCallCount, 1)
+        XCTAssertGreaterThan(mockNowPlayingService.fetchCallCount, fetchCountAfterPause)
+    }
+
     func testTogglePlaybackStartsPlayback() async {
         // Given
         let station = RadioStation(

@@ -87,8 +87,17 @@ final class RadioPlayer: RadioPlayerProtocol {
 
     func resume() {
         guard let station = currentStation, playbackState.isPaused else { return }
-        player?.play()
-        playbackState = .playing(station)
+        if let item = player?.currentItem {
+            // Jump to live edge when resuming a paused stream.
+            item.seek(to: .positiveInfinity) { [weak self] _ in
+                guard let self = self else { return }
+                self.player?.play()
+                self.playbackState = .playing(station)
+            }
+        } else {
+            player?.play()
+            playbackState = .playing(station)
+        }
     }
 
     func stop() {
