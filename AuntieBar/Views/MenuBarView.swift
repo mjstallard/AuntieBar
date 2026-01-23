@@ -5,6 +5,7 @@ struct MenuBarView: View {
     @Bindable var viewModel: RadioViewModel
     @State private var showingSettings = false
     @AppStorage("appearanceMode") private var appearanceMode = AppearanceMode.system.rawValue
+    @AppStorage("hideUKOnlyStations") private var hideUKOnlyStations = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -40,13 +41,13 @@ struct MenuBarView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     if showingSettings {
-                        MenuSettingsView()
+                        MenuSettingsView(viewModel: viewModel)
                     } else {
                         // Show categorized stations
-                        ForEach(viewModel.sortedCategories, id: \.self) { category in
+                        ForEach(viewModel.categories(hideUKOnly: hideUKOnlyStations), id: \.self) { category in
                             CategorySection(
                                 category: category,
-                                stations: viewModel.stationsByCategory[category] ?? [],
+                                stations: viewModel.stations(for: category, hideUKOnly: hideUKOnlyStations),
                                 viewModel: viewModel
                             )
                         }
@@ -101,7 +102,9 @@ struct MenuBarView: View {
 }
 
 private struct MenuSettingsView: View {
+    let viewModel: RadioViewModel
     @AppStorage("appearanceMode") private var appearanceMode = AppearanceMode.system.rawValue
+    @AppStorage("hideUKOnlyStations") private var hideUKOnlyStations = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -116,10 +119,33 @@ private struct MenuSettingsView: View {
             }
             .pickerStyle(.radioGroup)
             .labelsHidden()
+
+            Divider()
+                .padding(.vertical, 4)
+
+            Text("Stations")
+                .font(.headline)
+
+            Toggle("Hide UK-only stations", isOn: $hideUKOnlyStations)
+                .toggleStyle(.switch)
+
+            if hideUKOnlyStations {
+                Text(hiddenStationsLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var hiddenStationsLabel: String {
+        let count = viewModel.ukOnlyStationCount
+        if count == 1 {
+            return "Hiding 1 station"
+        }
+        return "Hiding \(count) stations"
     }
 }
 

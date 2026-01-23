@@ -165,6 +165,26 @@ final class RadioViewModelTests: XCTestCase {
         XCTAssertEqual(sorted[0], .national)
     }
 
+    func testStationsFilteringHidesUKOnlyStations() {
+        for category in viewModel.sortedCategories {
+            let allStations = viewModel.stations(for: category, hideUKOnly: false)
+            let filteredStations = viewModel.stations(for: category, hideUKOnly: true)
+            let ukOnlyCount = allStations.filter { $0.isUKOnly }.count
+
+            XCTAssertEqual(filteredStations.count, allStations.count - ukOnlyCount)
+            XCTAssertFalse(filteredStations.contains { $0.isUKOnly })
+        }
+    }
+
+    func testFilteredCategoriesExcludeEmptyCategories() {
+        let filteredCategories = viewModel.categories(hideUKOnly: true)
+
+        for category in filteredCategories {
+            let stations = viewModel.stations(for: category, hideUKOnly: true)
+            XCTAssertFalse(stations.isEmpty)
+        }
+    }
+
     // MARK: - Volume Persistence Tests
 
     func testDefaultVolumeWhenNoSavedValue() {

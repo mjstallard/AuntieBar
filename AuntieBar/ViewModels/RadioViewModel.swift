@@ -128,6 +128,20 @@ final class RadioViewModel {
         currentStation?.id == station.id && playbackState.isPlaying
     }
 
+    func stations(for category: RadioStationCategory, hideUKOnly: Bool) -> [RadioStation] {
+        let stations = stationsByCategory[category] ?? []
+        guard hideUKOnly else { return stations }
+        return stations.filter { !$0.isUKOnly }
+    }
+
+    func categories(hideUKOnly: Bool) -> [RadioStationCategory] {
+        sortedCategories.filter { !stations(for: $0, hideUKOnly: hideUKOnly).isEmpty }
+    }
+
+    var ukOnlyStationCount: Int {
+        allStations.filter { $0.isUKOnly }.count
+    }
+
     // MARK: - Private Methods
 
     private func setupBindings() {
