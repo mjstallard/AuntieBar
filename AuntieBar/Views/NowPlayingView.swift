@@ -80,7 +80,7 @@ struct NowPlayingView: View {
             .font(.title)
             .foregroundStyle(.secondary)
             .frame(width: 64, height: 64)
-            .background(Color(nsColor: .controlBackgroundColor))
+            .background(.thinMaterial)
             .cornerRadius(4)
     }
 }
@@ -164,7 +164,7 @@ private struct ArtworkLoader<Placeholder: View>: View {
             }
         }
         .frame(width: 64, height: 64)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(.thinMaterial)
         .cornerRadius(4)
     }
 

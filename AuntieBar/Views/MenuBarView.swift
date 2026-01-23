@@ -3,6 +3,8 @@ import SwiftUI
 /// Menu bar extra content showing all BBC Radio stations
 struct MenuBarView: View {
     @Bindable var viewModel: RadioViewModel
+    @State private var showingSettings = false
+    @AppStorage("appearanceMode") private var appearanceMode = AppearanceMode.system.rawValue
 
     var body: some View {
         VStack(spacing: 0) {
@@ -37,22 +39,26 @@ struct MenuBarView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Show categorized stations
-                    ForEach(viewModel.sortedCategories, id: \.self) { category in
-                        CategorySection(
-                            category: category,
-                            stations: viewModel.stationsByCategory[category] ?? [],
-                            viewModel: viewModel
-                        )
+                    if showingSettings {
+                        MenuSettingsView()
+                    } else {
+                        // Show categorized stations
+                        ForEach(viewModel.sortedCategories, id: \.self) { category in
+                            CategorySection(
+                                category: category,
+                                stations: viewModel.stationsByCategory[category] ?? [],
+                                viewModel: viewModel
+                            )
+                        }
                     }
                 }
             }
-            .frame(maxHeight: 500)
+            .frame(height: 180)
 
             Divider()
 
             // Footer controls
-            VStack(spacing: 4) {                
+            VStack(spacing: 4) {
 
                 if let error = viewModel.errorMessage {
                     Text(error)
@@ -63,6 +69,17 @@ struct MenuBarView: View {
                 }
 
                 HStack {
+                    Button {
+                        showingSettings.toggle()
+                    } label: {
+                        Label(
+                            showingSettings ? "Stations" : "Settings",
+                            systemImage: showingSettings ? "list.bullet" : "gearshape"
+                        )
+                            .labelStyle(.iconOnly)
+                    }
+                    .accessibilityLabel(showingSettings ? "Stations" : "Settings")
+
                     Button("Stop") {
                         viewModel.stop()
                     }
@@ -78,6 +95,31 @@ struct MenuBarView: View {
             }
         }
         .frame(width: 280)
+        .preferredColorScheme(AppearanceMode(rawValue: appearanceMode)?.colorScheme)
+        .background(.regularMaterial)
+    }
+}
+
+private struct MenuSettingsView: View {
+    @AppStorage("appearanceMode") private var appearanceMode = AppearanceMode.system.rawValue
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Appearance")
+                .font(.headline)
+
+            Picker("", selection: $appearanceMode) {
+                ForEach(AppearanceMode.allCases) { mode in
+                    Text(mode.label)
+                        .tag(mode.rawValue)
+                }
+            }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -100,7 +142,7 @@ struct CategorySection: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(nsColor: .controlBackgroundColor))
+                .background(.thinMaterial)
         }
     }
 }
@@ -128,8 +170,8 @@ struct StationButton: View {
                         .font(.caption2)
                         .padding(.horizontal, 4)
                         .padding(.vertical, 2)
-                        .background(colorScheme == .dark ? Color.blue.opacity(0.3) : Color.blue.opacity(0.2))
-                        .cornerRadius(3)
+                        .background(.thinMaterial)
+                        .clipShape(Capsule())
                 }
             }
         }
