@@ -11,6 +11,7 @@ final class RadioViewModelTests: XCTestCase {
         super.setUp()
         // Clear any saved volume from previous tests
         UserDefaults.standard.removeObject(forKey: "savedVolume")
+        UserDefaults.standard.removeObject(forKey: "favoriteStationIds")
         mockPlayer = MockRadioPlayer()
         mockNowPlayingService = MockNowPlayingService()
         // Use 0.1 second polling interval for fast tests
@@ -23,6 +24,7 @@ final class RadioViewModelTests: XCTestCase {
         viewModel = nil
         // Clean up saved volume
         UserDefaults.standard.removeObject(forKey: "savedVolume")
+        UserDefaults.standard.removeObject(forKey: "favoriteStationIds")
         super.tearDown()
     }
 
@@ -167,8 +169,8 @@ final class RadioViewModelTests: XCTestCase {
 
     func testStationsFilteringHidesUKOnlyStations() {
         for category in viewModel.sortedCategories {
-            let allStations = viewModel.stations(for: category, hideUKOnly: false)
-            let filteredStations = viewModel.stations(for: category, hideUKOnly: true)
+            let allStations = viewModel.stations(for: category, hideUKOnly: false, excludingFavorites: false)
+            let filteredStations = viewModel.stations(for: category, hideUKOnly: true, excludingFavorites: false)
             let ukOnlyCount = allStations.filter { $0.isUKOnly }.count
 
             XCTAssertEqual(filteredStations.count, allStations.count - ukOnlyCount)
@@ -177,12 +179,28 @@ final class RadioViewModelTests: XCTestCase {
     }
 
     func testFilteredCategoriesExcludeEmptyCategories() {
-        let filteredCategories = viewModel.categories(hideUKOnly: true)
+        let filteredCategories = viewModel.categories(hideUKOnly: true, excludingFavorites: false)
 
         for category in filteredCategories {
-            let stations = viewModel.stations(for: category, hideUKOnly: true)
+            let stations = viewModel.stations(for: category, hideUKOnly: true, excludingFavorites: false)
             XCTAssertFalse(stations.isEmpty)
         }
+    }
+
+    func testFavoriteStationsPersistToUserDefaults() {
+        guard let station = viewModel.allStations.first else {
+            XCTFail("Expected at least one station")
+            return
+        }
+
+        viewModel.toggleFavorite(for: station)
+
+        let savedFavorites = UserDefaults.standard.stringArray(forKey: "favoriteStationIds") ?? []
+        XCTAssertTrue(savedFavorites.contains(station.id))
+
+        let newMockPlayer = MockRadioPlayer()
+        let newViewModel = RadioViewModel(player: newMockPlayer)
+        XCTAssertTrue(newViewModel.isFavorite(station))
     }
 
     // MARK: - Volume Persistence Tests

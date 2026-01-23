@@ -10,7 +10,7 @@ struct RadioStation: Identifiable, Hashable, Codable {
     let serviceId: String
 
     init(id: String? = nil, name: String, streamURL: URL, category: RadioStationCategory, isUKOnly: Bool = false, serviceId: String) {
-        self.id = id ?? UUID().uuidString
+        self.id = id ?? serviceId
         self.name = name
         self.streamURL = streamURL
         self.category = category

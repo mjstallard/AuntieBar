@@ -44,10 +44,19 @@ struct MenuBarView: View {
                         MenuSettingsView(viewModel: viewModel)
                     } else {
                         // Show categorized stations
-                        ForEach(viewModel.categories(hideUKOnly: hideUKOnlyStations), id: \.self) { category in
+                        FavoritesSection(
+                            stations: viewModel.favoriteStations(hideUKOnly: hideUKOnlyStations),
+                            viewModel: viewModel
+                        )
+
+                        ForEach(viewModel.categories(hideUKOnly: hideUKOnlyStations, excludingFavorites: true), id: \.self) { category in
                             CategorySection(
                                 category: category,
-                                stations: viewModel.stations(for: category, hideUKOnly: hideUKOnlyStations),
+                                stations: viewModel.stations(
+                                    for: category,
+                                    hideUKOnly: hideUKOnlyStations,
+                                    excludingFavorites: true
+                                ),
                                 viewModel: viewModel
                             )
                         }
@@ -149,6 +158,29 @@ private struct MenuSettingsView: View {
     }
 }
 
+private struct FavoritesSection: View {
+    let stations: [RadioStation]
+    let viewModel: RadioViewModel
+
+    var body: some View {
+        if !stations.isEmpty {
+            Section {
+                ForEach(stations) { station in
+                    StationButton(station: station, viewModel: viewModel)
+                }
+            } header: {
+                Text("Favorites")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.thinMaterial)
+            }
+        }
+    }
+}
+
 // MARK: - Category Section
 
 struct CategorySection: View {
@@ -179,33 +211,51 @@ struct StationButton: View {
     let station: RadioStation
     let viewModel: RadioViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @State private var isHovered = false
 
     var body: some View {
-        Button {
-            viewModel.togglePlayback(for: station)
-        } label: {
-            HStack {
-                Image(systemName: viewModel.isCurrentlyPlaying(station) ? "stop.circle.fill" : "play.circle")
-                    .foregroundStyle(viewModel.isCurrentlyPlaying(station) ? .green : .primary)
+        HStack {
+            Image(systemName: viewModel.isCurrentlyPlaying(station) ? "stop.circle.fill" : "play.circle")
+                .foregroundStyle(viewModel.isCurrentlyPlaying(station) ? .green : .primary)
 
-                Text(station.name)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            Text(station.name)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                if station.isUKOnly {
-                    Text("UK only")
-                        .font(.caption2)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
-                        .background(.thinMaterial)
-                        .clipShape(Capsule())
-                }
+            if station.isUKOnly {
+                Text("UK only")
+                    .font(.caption2)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .background(.thinMaterial)
+                    .clipShape(Capsule())
             }
+
+            Button {
+                viewModel.toggleFavorite(for: station)
+            } label: {
+                Image(systemName: viewModel.isFavorite(station) ? "star.fill" : "star")
+                    .foregroundStyle(viewModel.isFavorite(station) ? .yellow : .secondary)
+                    .frame(width: 16)
+            }
+            .buttonStyle(.plain)
+            .opacity(isHovered ? 1 : 0)
+            .accessibilityLabel("Toggle favorite")
         }
-        .buttonStyle(.plain)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+        .background(isHovered ? Color.primary.opacity(0.06) : .clear)
+        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .overlay(alignment: .leading) {
+            Color.clear
+                .contentShape(Rectangle())
+                .padding(.trailing, 28)
+                .onTapGesture {
+                    viewModel.togglePlayback(for: station)
+                }
+        }
         .onHover { isHovered in
+            self.isHovered = isHovered
             if isHovered {
                 NSCursor.pointingHand.push()
             } else {

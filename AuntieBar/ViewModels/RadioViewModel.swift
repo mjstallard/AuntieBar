@@ -5,6 +5,11 @@ import Combine
 /// ViewModel managing radio station selection and playback state
 @Observable
 final class RadioViewModel {
+    private enum DefaultsKey {
+        static let savedVolume = "savedVolume"
+        static let favoriteStationIds = "favoriteStationIds"
+    }
+
     // MARK: - Published Properties
     private(set) var playbackState: PlaybackState = .idle
     private(set) var currentStation: RadioStation?
@@ -13,10 +18,11 @@ final class RadioViewModel {
     private(set) var nowPlayingInfo: NowPlayingInfo?
     private(set) var nowNextInfo: NowNextInfo?
     private(set) var audioQualityMetrics: AudioQualityMetrics?
+    private(set) var favoriteStationIds = Set<String>()
     var volume: Double = 0.5 {
         didSet {
             player.volume = volume
-            UserDefaults.standard.set(volume, forKey: "savedVolume")
+            UserDefaults.standard.set(volume, forKey: DefaultsKey.savedVolume)
         }
     }
 
@@ -50,9 +56,13 @@ final class RadioViewModel {
         self.sortedCategories = RadioStationsData.sortedCategories
 
         // Load saved volume or default to 0.5
-        let savedVolume = UserDefaults.standard.object(forKey: "savedVolume") as? Double ?? 0.5
+        let savedVolume = UserDefaults.standard.object(forKey: DefaultsKey.savedVolume) as? Double ?? 0.5
         self.volume = savedVolume
         player.volume = savedVolume
+
+        if let savedFavorites = UserDefaults.standard.stringArray(forKey: DefaultsKey.favoriteStationIds) {
+            favoriteStationIds = Set(savedFavorites)
+        }
 
         setupBindings()
         remoteCommandService.bind(to: self)
@@ -128,14 +138,37 @@ final class RadioViewModel {
         currentStation?.id == station.id && playbackState.isPlaying
     }
 
-    func stations(for category: RadioStationCategory, hideUKOnly: Bool) -> [RadioStation] {
-        let stations = stationsByCategory[category] ?? []
-        guard hideUKOnly else { return stations }
-        return stations.filter { !$0.isUKOnly }
+    func isFavorite(_ station: RadioStation) -> Bool {
+        favoriteStationIds.contains(station.id)
     }
 
-    func categories(hideUKOnly: Bool) -> [RadioStationCategory] {
-        sortedCategories.filter { !stations(for: $0, hideUKOnly: hideUKOnly).isEmpty }
+    func toggleFavorite(for station: RadioStation) {
+        if favoriteStationIds.contains(station.id) {
+            favoriteStationIds.remove(station.id)
+        } else {
+            favoriteStationIds.insert(station.id)
+        }
+
+        UserDefaults.standard.set(Array(favoriteStationIds), forKey: DefaultsKey.favoriteStationIds)
+    }
+
+    func favoriteStations(hideUKOnly: Bool) -> [RadioStation] {
+        let favorites = allStations.filter { favoriteStationIds.contains($0.id) }
+        if hideUKOnly {
+            return favorites.filter { !$0.isUKOnly }.sorted { $0.name < $1.name }
+        }
+        return favorites.sorted { $0.name < $1.name }
+    }
+
+    func stations(for category: RadioStationCategory, hideUKOnly: Bool, excludingFavorites: Bool) -> [RadioStation] {
+        let stations = stationsByCategory[category] ?? []
+        let filteredStations = hideUKOnly ? stations.filter { !$0.isUKOnly } : stations
+        guard excludingFavorites else { return filteredStations }
+        return filteredStations.filter { !favoriteStationIds.contains($0.id) }
+    }
+
+    func categories(hideUKOnly: Bool, excludingFavorites: Bool) -> [RadioStationCategory] {
+        sortedCategories.filter { !stations(for: $0, hideUKOnly: hideUKOnly, excludingFavorites: excludingFavorites).isEmpty }
     }
 
     var ukOnlyStationCount: Int {
