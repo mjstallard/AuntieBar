@@ -12,13 +12,8 @@ struct AuntieBarApp: App {
 
     @ViewBuilder
     private var menuBarLabel: some View {
-        if case let .playing(station) = viewModel.playbackState {
-            Label(station.name, systemImage: menuBarSystemImage)
-                .labelStyle(.titleAndIcon)
-        } else {
-            Image(systemName: menuBarSystemImage)
-                .accessibilityLabel("AuntieBar")
-        }
+        Image(systemName: menuBarSystemImage)
+            .accessibilityLabel("AuntieBar")
     }
 
     var body: some Scene {
